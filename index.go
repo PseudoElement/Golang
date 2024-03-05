@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"math"
 	"math/rand"
 )
 
@@ -22,11 +21,8 @@ func find[T any](arr []T, cond func(T) bool) interface{} {
 
 func main() {
     var arr = []int{1, 2, 3, 4, 5}
-    var found = find(arr, func (num int) bool{
-        return num >= 5;
-    })
 
-    randomIndex := math.Floor(float64(rand.Intn(len(arr))))
+    randomIndex := rand.Intn(len(arr))
     fmt.Println("Random index:", randomIndex)
 
     x := find(arr, func(num int) bool {
@@ -34,6 +30,4 @@ func main() {
     })
 
     fmt.Println(x);
-    
-    fmt.Println(found)
 }
