@@ -15,8 +15,8 @@ func find[T any](arr []T, cond func(T) bool) interface{} {
     return nil
 }
 
-func filter(arr []string, fn func(value string, ind int) bool) []string{
-    var filtered []string
+func filter[T any](arr []T, fn func(value T, ind int) bool) []T{
+    var filtered []T
     for i, el := range arr {
         needPush := fn(el, i);
         if needPush {
