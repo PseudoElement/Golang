@@ -35,7 +35,7 @@ func main() {
     
     fmt.Println(found)
 
-    const str string = "Siska";
+    const str string = "System";
     strToLower := strings.ToLower(str);
     
     var strSlice []string
