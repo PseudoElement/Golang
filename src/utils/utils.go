@@ -1,4 +1,4 @@
-package main
+package utils
 
 // type T int
 // type K int
