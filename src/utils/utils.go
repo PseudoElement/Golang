@@ -3,7 +3,9 @@ package utils
 // type T int
 // type K int
 
-func find[T any](arr []T, cond func(T) bool) interface{} {
+var TestName string = "Test Name";
+
+func Find[T any](arr []T, cond func(T) bool) interface{} {
 	for i := 0; i < len(arr); i++ {
 		el := arr[i]
 		if cond(el) {
@@ -14,7 +16,7 @@ func find[T any](arr []T, cond func(T) bool) interface{} {
 	return nil
 }
 
-func filter[T any](arr []T, fn func(value T, ind int) bool) []T {
+func Filter[T any](arr []T, fn func(value T, ind int) bool) []T {
 	var filtered []T
 	for i, el := range arr {
 		needPush := fn(el, i)
