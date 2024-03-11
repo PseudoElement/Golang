@@ -3,7 +3,15 @@ package utils
 // type T int
 // type K int
 
-var TestName string = "Test Name";
+var MyTicket = Ticket{
+	Name: "Hello",
+	Date: 124314,
+	Price: 111111,
+}
+
+func LogTicket() Ticket {
+	return MyTicket;
+}
 
 func Find[T any](arr []T, cond func(T) bool) interface{} {
 	for i := 0; i < len(arr); i++ {

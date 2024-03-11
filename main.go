@@ -2,13 +2,9 @@ package main
 
 import (
 	"fmt"
-	"log"
-	"net/http"
+	"go-server/src/utils"
 	"strconv"
 	"strings"
-
-	"example.com/m/src/utils"
-	"github.com/gorilla/mux"
 )
 
 func isHappy(n int) bool {
@@ -56,13 +52,13 @@ func main() {
 	filtered := utils.Filter(slice, func(num int, ind int) bool {
 		return num > 1;
 	})
-	fmt.Println("Filtered - ", filtered);
-	fmt.Println("Name - ", ControllerName);
+	// fmt.Println("Filtered - ", filtered);
+	fmt.Println("LogTicket - ", filtered);
 
-	api := mux.NewRouter().StrictSlash(true)
+	// api := mux.NewRouter().StrictSlash(true)
 
-	api.HandleFunc("/hello", HelloController).Methods("GET");
+	// api.HandleFunc("/hello", HelloController).Methods("GET");
 
-	log.Fatal(http.ListenAndServe(":8080", api))
+	// log.Fatal(http.ListenAndServe(":8080", api))
 
 }
