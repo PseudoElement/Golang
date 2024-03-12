@@ -2,10 +2,6 @@ package test
 
 import "fmt"
 
-func testPrint() {
+func TestPrint() {
 	fmt.Println("Test printed!")
-}
-
-func main(){
-	testPrint();
 }
