@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	oneinch "go-server/src/modules/1inch"
 	"log"
 	"net/http"
@@ -9,15 +10,12 @@ import (
 )
 
 func main() {
-	//use deps from another module
-	// filtered := utils.Filter(slice, func(num int, ind int) bool {
-	// 	return num > 1;
-	// })
 	router := mux.NewRouter().StrictSlash(true);
-	api := router.PathPrefix("/api/v1").Subrouter()
+	api := router.PathPrefix("/api/v1").Subrouter();
 
-	api.HandleFunc("/oneinch/quote", oneinch.QuoteController).Methods("GET");
+	oneinch.SetOneInchRoutes(api);
 
+	fmt.Println("Listening port 8080...");
 	log.Fatal(http.ListenAndServe(":8080", api))
 
 }
