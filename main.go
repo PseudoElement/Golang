@@ -11,11 +11,13 @@ import (
 
 func main() {
 	router := mux.NewRouter().StrictSlash(true);
-	api := router.PathPrefix("/api/v1").Subrouter();
+	r := router.PathPrefix("/api/v1").Subrouter();
+	
+	// ApiService.AllowOriginsMiddleware(r);
 
-	oneinch.SetOneInchRoutes(api);
+	oneinch.SetOneInchRoutes(r);
 
 	fmt.Println("Listening port 8080...");
-	log.Fatal(http.ListenAndServe(":8080", api))
+	log.Fatal(http.ListenAndServe(":8080", r))
 
 }

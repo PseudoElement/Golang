@@ -14,11 +14,28 @@ func _helloController(w http.ResponseWriter, req *http.Request){
 }
 
 func _quoteController(w http.ResponseWriter, req *http.Request) {
-	// walletAddress := req.URL.Query().Get("walletAddress");
+	w.Header().Set("Access-Control-Allow-Origin", "*");
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 
-	quoteUrl := fmt.Sprintf("%v/%v/quote", oneinch_api_url, "56");
+	srcParam := req.URL.Query().Get("src");
+	dstParam := req.URL.Query().Get("dst");
+	amountParam := req.URL.Query().Get("amount");
+	chainId := req.URL.Query().Get("chainId")
 
-	res, err := http.Get(quoteUrl);
+
+	client := &http.Client{};
+	quoteUrl := fmt.Sprintf("%v/%v/quote", oneinch_api_url, chainId);
+	quoteReq, err := http.NewRequest(http.MethodGet, quoteUrl, nil);
+	
+	params := quoteReq.URL.Query();
+	params.Add("src", srcParam);
+	params.Add("dst", dstParam);
+	params.Add("amount", amountParam);
+	
+	quoteReq.URL.RawQuery = params.Encode();
+	quoteReq.Header.Set("Authorization", oneinch_authorization_header_value);
+
+	res, _ := client.Do(quoteReq);
 
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest);
@@ -29,11 +46,8 @@ func _quoteController(w http.ResponseWriter, req *http.Request) {
 	quoteResBody, _ := io.ReadAll(res.Body);
 	quoteResBodyString := string(quoteResBody);
 
-	fmt.Println("BODY_RAW ", quoteResBodyString);
-
 	w.Header().Set("Content-Type", "application/json");
-	w.Header().Set("Authorization", oneinch_authorization_header_value);
-
 	w.WriteHeader(http.StatusOK);
-	json.NewEncoder(w).Encode(quoteResBodyString)
+
+	json.NewEncoder(w).Encode(quoteResBodyString);
 }
