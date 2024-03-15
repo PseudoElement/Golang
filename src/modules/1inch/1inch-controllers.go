@@ -3,7 +3,7 @@ package oneinch
 import (
 	"encoding/json"
 	"fmt"
-	"io"
+	ApiService "go-server/src/api"
 	"net/http"
 )
 func _helloController(w http.ResponseWriter, req *http.Request){
@@ -23,19 +23,11 @@ func _quoteController(w http.ResponseWriter, req *http.Request) {
 	chainId := req.URL.Query().Get("chainId")
 
 
-	client := &http.Client{};
 	quoteUrl := fmt.Sprintf("%v/%v/quote", oneinch_api_url, chainId);
-	quoteReq, err := http.NewRequest(http.MethodGet, quoteUrl, nil);
-	
-	params := quoteReq.URL.Query();
-	params.Add("src", srcParam);
-	params.Add("dst", dstParam);
-	params.Add("amount", amountParam);
-	
-	quoteReq.URL.RawQuery = params.Encode();
-	quoteReq.Header.Set("Authorization", oneinch_authorization_header_value);
+	quoteParams := map[string]string{"src": srcParam, "dst": dstParam, "amount": amountParam};
+	quoteHeaders := map[string]string{"Authorization": oneinch_authorization_header_value};
 
-	res, _ := client.Do(quoteReq);
+	res, err := ApiService.Get(quoteUrl, quoteParams, quoteHeaders)
 
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest);
@@ -43,11 +35,8 @@ func _quoteController(w http.ResponseWriter, req *http.Request) {
 		return;
 	}
 
-	quoteResBody, _ := io.ReadAll(res.Body);
-	quoteResBodyString := string(quoteResBody);
-
 	w.Header().Set("Content-Type", "application/json");
 	w.WriteHeader(http.StatusOK);
 
-	json.NewEncoder(w).Encode(quoteResBodyString);
+	json.NewEncoder(w).Encode(res);
 }
