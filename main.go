@@ -2,7 +2,8 @@ package main
 
 import (
 	"fmt"
-	oneinch "go-server/src/modules/1inch"
+	Middlewares "go-server/src/api/middlewares"
+	Oneinch "go-server/src/modules/1inch"
 	"log"
 	"net/http"
 
@@ -13,9 +14,9 @@ func main() {
 	router := mux.NewRouter().StrictSlash(true);
 	r := router.PathPrefix("/api/v1").Subrouter();
 	
-	// ApiService.AllowOriginsMiddleware(r);
+	Middlewares.AllowOriginsMiddleware(r);
 
-	oneinch.SetOneInchRoutes(r);
+	Oneinch.SetOneinchRoutes(r);
 
 	fmt.Println("Listening port 8080...");
 	log.Fatal(http.ListenAndServe(":8080", r))

@@ -1,4 +1,4 @@
-package oneinch
+package Oneinch
 
 import (
 	"net/http"
@@ -6,7 +6,8 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func SetOneInchRoutes(router *mux.Router) {
+func SetOneinchRoutes(router *mux.Router) {
 	router.HandleFunc("/oneinch/quote", _quoteController).Methods(http.MethodGet);
+	router.HandleFunc("/oneinch/swap", _swapController).Methods(http.MethodGet);
 	router.HandleFunc("/hello", _helloController).Methods(http.MethodGet);
 }

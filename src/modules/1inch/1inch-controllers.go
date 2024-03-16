@@ -1,4 +1,4 @@
-package oneinch
+package Oneinch
 
 import (
 	"encoding/json"
@@ -14,18 +14,11 @@ func _helloController(w http.ResponseWriter, req *http.Request){
 }
 
 func _quoteController(w http.ResponseWriter, req *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "*");
-	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
-
-	srcParam := req.URL.Query().Get("src");
-	dstParam := req.URL.Query().Get("dst");
-	amountParam := req.URL.Query().Get("amount");
-	chainId := req.URL.Query().Get("chainId")
-
-
-	quoteUrl := fmt.Sprintf("%v/%v/quote", oneinch_api_url, chainId);
-	quoteParams := map[string]string{"src": srcParam, "dst": dstParam, "amount": amountParam};
+	ApiService.SetResponseHeaders(w, req);
+	
+	quoteParams := ApiService.MapQueryParams(req, "src", "dst", "amount", "chainId");
 	quoteHeaders := map[string]string{"Authorization": oneinch_authorization_header_value};
+	quoteUrl := fmt.Sprintf("%v/%v/quote", oneinch_api_url, quoteParams["chainId"]);
 
 	res, err := ApiService.Get(quoteUrl, quoteParams, quoteHeaders)
 
@@ -35,7 +28,26 @@ func _quoteController(w http.ResponseWriter, req *http.Request) {
 		return;
 	}
 
-	w.Header().Set("Content-Type", "application/json");
+	w.WriteHeader(http.StatusOK);
+
+	json.NewEncoder(w).Encode(res);
+}
+
+func _swapController(w http.ResponseWriter, req *http.Request) {
+	ApiService.SetResponseHeaders(w, req);
+
+	swapParams := ApiService.MapQueryParams(req, "src", "dst", "amount", "chainId", "from", "receiver", "slippage");
+	swapHeaders := map[string]string{"Authorization": oneinch_authorization_header_value};
+	swapUrl := fmt.Sprintf("%v/%v/swap", oneinch_api_url, swapParams["chainId"]);
+
+	res, err := ApiService.Get(swapUrl, swapParams, swapHeaders)
+
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest);
+		w.Write([]byte("Invalid params!"));
+		return;
+	}
+
 	w.WriteHeader(http.StatusOK);
 
 	json.NewEncoder(w).Encode(res);

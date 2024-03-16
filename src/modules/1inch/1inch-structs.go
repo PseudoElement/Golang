@@ -1,12 +1,12 @@
-package oneinch
+package Oneinch
 
-type oneinchQuoteReqParams struct {
+type OneinchQuoteReqParams struct {
 	src    string
 	dst    string
 	amount string
 }
 
-type oneinchQuoteResponse struct {
+type OneinchQuoteResponse struct {
 	toAmount  string
 	gas       int
 	fromToken interface{}

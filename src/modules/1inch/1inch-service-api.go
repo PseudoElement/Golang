@@ -1,3 +1,3 @@
-package oneinch
+package Oneinch
 
 var count int = 0
