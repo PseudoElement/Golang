@@ -14,6 +14,10 @@ package OneinchModels
 // 	protocols interface{}
 // }
 
-type OneinchApproveResponse struct {
+type ApproveResponse struct {
 	ApproveAddress string `json:"address"`
+}
+
+type AllowanceResponse struct {
+	Allowance string `json:"allowance"`
 }

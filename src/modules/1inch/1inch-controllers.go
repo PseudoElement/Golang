@@ -7,6 +7,7 @@ import (
 	OneinchConsts "go-server/src/modules/1inch/constants"
 	OneinchApiService "go-server/src/modules/1inch/services"
 	"net/http"
+	"strconv"
 )
 
 func _helloController(w http.ResponseWriter, req *http.Request){
@@ -41,12 +42,13 @@ func _swapController(w http.ResponseWriter, req *http.Request) {
 	headers := map[string]string{"Authorization": OneinchConsts.ONEINCH_AUTHORIZATION_HEADER_VALUE};
 	swapUrl := fmt.Sprintf("%v/%v/swap", OneinchConsts.ONEINCH_API_URL, params["chainId"]);
 
-	approveAddress, approveErr := OneinchApiService.GetApproveAddress(w, params["chainId"])
 
-	if approveErr != nil{
-		w.WriteHeader(http.StatusBadRequest);
-		w.Write([]byte("Cannot get approve address!"));
-		return;
+	allowance, _ := OneinchApiService.GetTokenAllowance(w, params["chainId"]);
+	allowanceInt, _ := strconv.Atoi(allowance);
+	amountInt, _ := strconv.Atoi(params["amount"])
+
+	if needApprove := allowanceInt < amountInt; needApprove {
+		approveAddress, _ := OneinchApiService.GetApproveAddress(w, params["chainId"]);
 	}
 
 	res, err := ApiService.Get(swapUrl, params, headers);
