@@ -4,21 +4,22 @@ import (
 	"encoding/json"
 	"fmt"
 	ApiService "go-server/src/api"
+	OneinchConsts "go-server/src/modules/1inch/constants"
+	OneinchApiService "go-server/src/modules/1inch/services"
 	"net/http"
 )
-func _helloController(w http.ResponseWriter, req *http.Request){
-	count++;
 
-	w.WriteHeader(http.StatusAccepted);
-	fmt.Fprintf(w, "Hello controller calls %v times!\n", count);
+func _helloController(w http.ResponseWriter, req *http.Request){
+	w.WriteHeader(http.StatusOK);
+	fmt.Fprintln(w, "Hello Controller triggered!")
 }
 
 func _quoteController(w http.ResponseWriter, req *http.Request) {
 	ApiService.SetResponseHeaders(w, req);
 	
 	quoteParams := ApiService.MapQueryParams(req, "src", "dst", "amount", "chainId");
-	quoteHeaders := map[string]string{"Authorization": oneinch_authorization_header_value};
-	quoteUrl := fmt.Sprintf("%v/%v/quote", oneinch_api_url, quoteParams["chainId"]);
+	quoteHeaders := map[string]string{"Authorization": OneinchConsts.ONEINCH_AUTHORIZATION_HEADER_VALUE};
+	quoteUrl := fmt.Sprintf("%v/%v/quote", OneinchConsts.ONEINCH_API_URL, quoteParams["chainId"]);
 
 	res, err := ApiService.Get(quoteUrl, quoteParams, quoteHeaders)
 
@@ -36,11 +37,19 @@ func _quoteController(w http.ResponseWriter, req *http.Request) {
 func _swapController(w http.ResponseWriter, req *http.Request) {
 	ApiService.SetResponseHeaders(w, req);
 
-	swapParams := ApiService.MapQueryParams(req, "src", "dst", "amount", "chainId", "from", "receiver", "slippage");
-	swapHeaders := map[string]string{"Authorization": oneinch_authorization_header_value};
-	swapUrl := fmt.Sprintf("%v/%v/swap", oneinch_api_url, swapParams["chainId"]);
+	params := ApiService.MapQueryParams(req, "src", "dst", "amount", "chainId", "from", "receiver", "slippage");
+	headers := map[string]string{"Authorization": OneinchConsts.ONEINCH_AUTHORIZATION_HEADER_VALUE};
+	swapUrl := fmt.Sprintf("%v/%v/swap", OneinchConsts.ONEINCH_API_URL, params["chainId"]);
 
-	res, err := ApiService.Get(swapUrl, swapParams, swapHeaders)
+	approveAddress, approveErr := OneinchApiService.GetApproveAddress(w, params["chainId"])
+
+	if approveErr != nil{
+		w.WriteHeader(http.StatusBadRequest);
+		w.Write([]byte("Cannot get approve address!"));
+		return;
+	}
+
+	res, err := ApiService.Get(swapUrl, params, headers);
 
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest);

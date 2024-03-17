@@ -5,7 +5,7 @@ import (
 	"net/http"
 )
 
-func Get(url string, params map[string]string, headers map[string]string) (response string, e error) {
+func Get(url string, params map[string]string, headers map[string]string) (responseBody []byte, e error) {
 	client := &http.Client{};
 	req, _ := http.NewRequest(http.MethodGet, url, nil);
 	queryParams := req.URL.Query()
@@ -22,13 +22,12 @@ func Get(url string, params map[string]string, headers map[string]string) (respo
 	res, err := client.Do(req);
 
 	if err != nil {
-		return "", err;
+		return nil, err;
 	}
 
 	resBody, _ := io.ReadAll(res.Body);
-	resBodyString := string(resBody);
 
-	return resBodyString, nil;
+	return resBody, nil;
 }
 
 // func Post() string {

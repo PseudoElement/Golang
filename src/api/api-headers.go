@@ -7,6 +7,7 @@ func SetResponseHeaders(w http.ResponseWriter, req *http.Request) {
 	if origin == "http://localhost:5173" || origin == "http://localhost:3000" {
 		w.Header().Set("Access-Control-Allow-Origin", origin)
 	}
-	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+	w.Header().Set("Access-Control-Allow-Credentials", "true");
 }
