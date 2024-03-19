@@ -48,7 +48,9 @@ func _swapController(w http.ResponseWriter, req *http.Request) {
 	amountInt, _ := strconv.Atoi(params["amount"])
 
 	if needApprove := allowanceInt < amountInt; needApprove {
-		approveAddress, _ := OneinchApiService.GetApproveAddress(w, params["chainId"]);
+		// approveAddress, _ := OneinchApiService.GetApproveAddress(w, params["chainId"]);
+		approveConfig, _ := OneinchApiService.GetApproveConfig(w, params["chainId"], params["src"], params["amount"]);
+		fmt.Println("APPROVE_CONFIG - ", approveConfig);
 	}
 
 	res, err := ApiService.Get(swapUrl, params, headers);
