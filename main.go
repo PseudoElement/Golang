@@ -4,6 +4,7 @@ import (
 	"fmt"
 	Middlewares "go-server/src/api/middlewares"
 	Oneinch "go-server/src/modules/1inch"
+	Crud "go-server/src/modules/crud"
 	"log"
 	"net/http"
 
@@ -17,6 +18,7 @@ func main() {
 	Middlewares.AllowOriginsMiddleware(r);
 
 	Oneinch.SetOneinchRoutes(r);
+	Crud.SetCrudRoutes(r);
 
 	fmt.Println("Listening port 8080...");
 	log.Fatal(http.ListenAndServe(":8080", r))

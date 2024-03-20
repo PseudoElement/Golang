@@ -29,6 +29,25 @@ func MakeQuoteRequest(w http.ResponseWriter, req *http.Request) (OneinchModels.Q
 	return resObject, nil;
 }
 
+func MakeSwapRequest(w http.ResponseWriter, req *http.Request) (OneinchModels.SwapRes, error) {
+	params := ApiService.MapQueryParams(req, "src", "dst", "amount", "chainId", "from", "receiver", "slippage");
+	headers := map[string]string{"Authorization": OneinchConsts.ONEINCH_AUTHORIZATION_HEADER_VALUE};
+	url := fmt.Sprintf("%v/%v/swap", OneinchConsts.ONEINCH_API_URL, params["chainId"]);
+
+	resBody, resErr := ApiService.Get(url, params, headers);
+
+	if resErr != nil {
+		return OneinchModels.SwapRes{}, resErr;
+	}
+
+	var swapStruct OneinchModels.SwapRes;
+	if err := json.Unmarshal(resBody, &swapStruct); err != nil {
+		return OneinchModels.SwapRes{}, err;
+	}
+
+	return swapStruct, nil;
+}
+
 func GetSpenderAddress(w http.ResponseWriter, chainId string) (OneinchModels.GetSpenderAddressRes, error) {
 	headers := map[string]string{"Authorization": OneinchConsts.ONEINCH_AUTHORIZATION_HEADER_VALUE}
 	url := fmt.Sprintf("%v/%v/approve/spender", OneinchConsts.ONEINCH_API_URL, chainId);
