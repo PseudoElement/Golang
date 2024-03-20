@@ -10,38 +10,59 @@ import (
 )
 
 
-func GetApproveAddress(w http.ResponseWriter, chainId string) (approveAddress string, e error) {
+func MakeQuoteRequest(w http.ResponseWriter, req *http.Request) (OneinchModels.QuoteRes, error) {
+	quoteParams := ApiService.MapQueryParams(req, "src", "dst", "amount", "chainId");
+	quoteHeaders := map[string]string{"Authorization": OneinchConsts.ONEINCH_AUTHORIZATION_HEADER_VALUE};
+	quoteUrl := fmt.Sprintf("%v/%v/quote", OneinchConsts.ONEINCH_API_URL, quoteParams["chainId"]);
+
+	resBody, resErr := ApiService.Get(quoteUrl, quoteParams, quoteHeaders)
+
+	if resErr != nil {
+		return OneinchModels.QuoteRes{}, resErr;
+	}
+
+	var resObject OneinchModels.QuoteRes;
+	if err := json.Unmarshal(resBody, &resObject); err != nil {
+		return OneinchModels.QuoteRes{}, err;
+	}
+
+	return resObject, nil;
+}
+
+func GetSpenderAddress(w http.ResponseWriter, chainId string) (OneinchModels.GetSpenderAddressRes, error) {
 	headers := map[string]string{"Authorization": OneinchConsts.ONEINCH_AUTHORIZATION_HEADER_VALUE}
 	url := fmt.Sprintf("%v/%v/approve/spender", OneinchConsts.ONEINCH_API_URL, chainId);
 
 	resBody, resErr := ApiService.Get(url, make(map[string]string), headers);
 	if resErr != nil{
-		return "", resErr;
+		return OneinchModels.GetSpenderAddressRes{}, resErr;
 	}
 
-	var approveStruct OneinchModels.GetApproveAddressRes
+	var approveStruct OneinchModels.GetSpenderAddressRes
 	if err := json.Unmarshal(resBody, &approveStruct); err != nil {
-		return "", err;
+		return OneinchModels.GetSpenderAddressRes{}, err;
 	}
 
-	return approveStruct.ApproveAddress, nil;
+	return approveStruct, nil;
 }
 
-func GetTokenAllowance(w http.ResponseWriter, chainId string) (allowance string, e error) {
+func GetTokenAllowance(w http.ResponseWriter, req *http.Request) (OneinchModels.GetTokenAllowanceRes, error) {
+	allQueryParams := ApiService.MapQueryParams(req, "src", "chainId", "walletAddress");
 	headers := map[string]string{"Authorization": OneinchConsts.ONEINCH_AUTHORIZATION_HEADER_VALUE}
-	url := fmt.Sprintf("%v/%v/approve/allowance", OneinchConsts.ONEINCH_API_URL, chainId);
+	url := fmt.Sprintf("%v/%v/approve/allowance", OneinchConsts.ONEINCH_API_URL, allQueryParams["chainId"]);
+	params := map[string]string{"tokenAddress": allQueryParams["src"], "walletAddress": allQueryParams["walletAddress"]};
 
-	resBody, resErr := ApiService.Get(url, make(map[string]string), headers);
+	resBody, resErr := ApiService.Get(url, params, headers);
 	if resErr != nil{
-		return "", resErr;
+		return OneinchModels.GetTokenAllowanceRes{}, resErr;
 	}
 
 	var allowanceStruct OneinchModels.GetTokenAllowanceRes;
 	if err := json.Unmarshal(resBody, &allowanceStruct); err != nil {
-		return "", err;
+		return OneinchModels.GetTokenAllowanceRes{}, err;
 	}
 
-	return allowanceStruct.Allowance, nil;
+	return allowanceStruct, nil;
 }
 
 func GetApproveConfig(w http.ResponseWriter, chainId string, fromTokenAddress string, fromTokenAmount string)  (OneinchModels.GetApproveConfigRes, error) {
