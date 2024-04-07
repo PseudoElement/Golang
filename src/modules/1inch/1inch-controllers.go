@@ -1,11 +1,12 @@
-package Oneinch
+package oneinch
 
 import (
 	"encoding/json"
 	"fmt"
-	ApiService "go-server/src/api"
-	OneinchApiService "go-server/src/modules/1inch/services"
 	"net/http"
+
+	api_main "github.com/pseudoelement/go-server/src/api"
+	oneinch_api "github.com/pseudoelement/go-server/src/modules/1inch/services"
 )
 
 func _helloController(w http.ResponseWriter, req *http.Request){
@@ -14,11 +15,11 @@ func _helloController(w http.ResponseWriter, req *http.Request){
 }
 
 func _getApproveConfigController(w http.ResponseWriter, req *http.Request) {
-	ApiService.SetResponseHeaders(w, req);
+	api_main.SetResponseHeaders(w, req);
 
-	params := ApiService.MapQueryParams(req, "src", "amount", "chainId");
+	params := api_main.MapQueryParams(req, "src", "amount", "chainId");
 
-	approveObj, _ := OneinchApiService.GetApproveConfig(w, params["chainId"], params["src"], params["amount"]);
+	approveObj, _ := oneinch_api.GetApproveConfig(w, params["chainId"], params["src"], params["amount"]);
 
 	w.WriteHeader(http.StatusOK);
 
@@ -26,9 +27,9 @@ func _getApproveConfigController(w http.ResponseWriter, req *http.Request) {
 }
 
 func _getAllowanceController(w http.ResponseWriter, req *http.Request) {
-	ApiService.SetResponseHeaders(w, req);
+	api_main.SetResponseHeaders(w, req);
 
-	allowanceObj, _ := OneinchApiService.GetTokenAllowance(w, req);
+	allowanceObj, _ := oneinch_api.GetTokenAllowance(w, req);
 
 	w.WriteHeader(http.StatusOK);
 
@@ -36,9 +37,9 @@ func _getAllowanceController(w http.ResponseWriter, req *http.Request) {
 }
 
 func _quoteController(w http.ResponseWriter, req *http.Request) {
-	ApiService.SetResponseHeaders(w, req);
+	api_main.SetResponseHeaders(w, req);
 	
-	quoteData, _ := OneinchApiService.MakeQuoteRequest(w, req);
+	quoteData, _ := oneinch_api.MakeQuoteRequest(w, req);
 
 	w.WriteHeader(http.StatusOK);
 
@@ -46,9 +47,9 @@ func _quoteController(w http.ResponseWriter, req *http.Request) {
 }
 
 func _swapController(w http.ResponseWriter, req *http.Request) {
-	ApiService.SetResponseHeaders(w, req);
+	api_main.SetResponseHeaders(w, req);
 
-	swapData, err := OneinchApiService.MakeSwapRequest(w, req);
+	swapData, err := oneinch_api.MakeSwapRequest(w, req);
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest);
 		json.NewEncoder(w).Encode(err)

@@ -1,13 +1,14 @@
-package Crud
+package crud
 
 import (
 	"encoding/json"
-	ApiService "go-server/src/api"
 	"net/http"
+
+	api_main "github.com/pseudoelement/go-server/src/api"
 )
 
 func _healthcheckController(w http.ResponseWriter, req *http.Request) {
-	ApiService.SetResponseHeaders(w, req);
+	api_main.SetResponseHeaders(w, req);
 	w.WriteHeader(http.StatusOK);
 	w.Write([]byte("Server works!"));
 }

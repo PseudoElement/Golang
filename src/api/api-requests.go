@@ -1,4 +1,4 @@
-package ApiService
+package api_main
 
 import (
 	"bytes"

@@ -1,4 +1,4 @@
-package ApiErrors
+package api_errors
 
 import (
 	"encoding/json"

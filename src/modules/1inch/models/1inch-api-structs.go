@@ -1,4 +1,4 @@
-package OneinchModels
+package oneinch_models
 
 type QuoteRes struct {
 	ToAmount string `json:"dstAmount"`

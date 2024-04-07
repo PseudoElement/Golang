@@ -1,8 +1,8 @@
-package Crud
+package crud
 
 import "github.com/gorilla/mux"
 
-func SetCrudRoutes(router *mux.Router) {
+func SetcrudRoutes(router *mux.Router) {
 	router.HandleFunc("/healthcheck", _healthcheckController);
 	router.HandleFunc("/posts/add-post", _addPostController);
 }
