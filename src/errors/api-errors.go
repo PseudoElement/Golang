@@ -1,29 +1,36 @@
-package api_errors
+package errors_module
 
-import (
-	"encoding/json"
-	"net/http"
-)
+import "net/http"
 
-type ApiError struct{
-	Message string
+type ApiError struct {
+	message string
+	status  int
 }
 
-func(e *ApiError) Error() string{
-	return e.Message;
+func (e *ApiError) Error() string {
+	return e.message
 }
 
-func IncorrectQueryParams(w http.ResponseWriter) {
-	w.WriteHeader(http.StatusBadRequest);
-	json.NewEncoder(w).Encode(ApiError{Message: "Incorrect query parameters!"})
+func (e *ApiError) Status() int {
+	return e.status
 }
 
-func Unauthorized(w http.ResponseWriter) {
-	w.WriteHeader(http.StatusUnauthorized);
-	json.NewEncoder(w).Encode(ApiError{Message: "Unauthorized!"})
+func IncorrectQueryParams() ErrorWithStatus {
+	return &ApiError{message: "Incorrect query parameters!", status: http.StatusBadRequest}
 }
 
-func IncorrectBody(w http.ResponseWriter) {
-	w.WriteHeader(http.StatusBadRequest);
-	json.NewEncoder(w).Encode(ApiError{Message: "Incorrect request body!"})
+func Unauthorized() ErrorWithStatus {
+	return &ApiError{message: "Unauthorized!", status: http.StatusUnauthorized}
+}
+
+func IncorrectBody() ErrorWithStatus {
+	return &ApiError{message: "Incorrect request body!", status: http.StatusBadRequest}
+}
+
+func EmptyBody() ErrorWithStatus {
+	return &ApiError{message: "Empty request body!", status: http.StatusBadRequest}
+}
+
+func TooLargeBody() ErrorWithStatus {
+	return &ApiError{message: "Request body must not be larger than 1MB", status: http.StatusBadRequest}
 }

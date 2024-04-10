@@ -2,15 +2,16 @@ package main
 
 import (
 	"fmt"
+	"os"
 
 	"log"
 	"net/http"
 
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
-	redis_module "github.com/pseudoelement/go-server/src/db/redis"
+	redis_main "github.com/pseudoelement/go-server/src/db/redis"
 	oneinch "github.com/pseudoelement/go-server/src/modules/1inch"
-	auth_module "github.com/pseudoelement/go-server/src/modules/auth"
+	auth_main "github.com/pseudoelement/go-server/src/modules/auth"
 	crud "github.com/pseudoelement/go-server/src/modules/crud"
 )
 
@@ -24,15 +25,12 @@ func main() {
 		fmt.Println(err)
 	}
 	
-	redis_module.Init();
+	redis_main.Init();
 
-	token, _ := auth_module.CreateToken(10);
-
-	fmt.Println("Token is ", token);
-	
 	oneinch.SetOneinchRoutes(r);
-	crud.SetcrudRoutes(r);
+	crud.SetCrudRoutes(r);
+	auth_main.SetAuthRoutes(r);
 
 	fmt.Println("Listening port 8080...");
-	log.Fatal(http.ListenAndServe(":8080", r))
+	log.Fatal(http.ListenAndServe(os.Getenv("PORT"), r))
 }

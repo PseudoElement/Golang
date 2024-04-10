@@ -3,12 +3,12 @@ package middlewares
 import (
 	"net/http"
 
-	api_errors "github.com/pseudoelement/go-server/src/errors"
-	auth_module "github.com/pseudoelement/go-server/src/modules/auth"
+	errors_module "github.com/pseudoelement/go-server/src/errors"
+	auth_services "github.com/pseudoelement/go-server/src/modules/auth/services"
 )
 
 func AuthOnly(w http.ResponseWriter, req *http.Request)  {
-	if(!auth_module.IsTokenValid(req)){
-		api_errors.Unauthorized(w);
+	if(!auth_services.IsTokenValid(req)){
+		errors_module.Unauthorized();
 	}
 }

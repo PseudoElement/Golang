@@ -1,4 +1,4 @@
-package redis_module
+package redis_main
 
 import (
 	"encoding/json"
@@ -33,12 +33,12 @@ func Get(key string) (string, error) {
 func SetStruct[T any](key string, object T) error {
 	json, err := json.Marshal(object)
 	if err != nil {
-		panic(err)
+		return err;
 	}
 
 	err = client.Set(ctx, key, json, 0).Err()
 	if err != nil {
-		panic(err)
+		return err;
 	}
 
 	return nil

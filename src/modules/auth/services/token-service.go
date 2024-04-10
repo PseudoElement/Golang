@@ -1,4 +1,4 @@
-package auth_module
+package auth_services
 
 import (
 	"errors"
@@ -8,9 +8,11 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt"
+	errors_module "github.com/pseudoelement/go-server/src/errors"
+	auth_errors "github.com/pseudoelement/go-server/src/modules/auth/errors"
 )
 
-func CreateToken(expirationMin time.Duration) (string, error) {
+func CreateToken(expirationMin time.Duration) (string, errors_module.ErrorWithStatus) {
 	token := jwt.New(jwt.SigningMethodHS256)
 
 	claims := token.Claims.(jwt.MapClaims);
@@ -22,7 +24,7 @@ func CreateToken(expirationMin time.Duration) (string, error) {
 	token_string, err := token.SignedString(secret);
 	if err != nil {
 		fmt.Println(err)
-    	return "", err
+    	return "", auth_errors.CantCreateToken();
  	}
 
 	return token_string, nil
@@ -44,9 +46,18 @@ func IsTokenValid(req *http.Request) bool {
 
 	 })
 
-	 if err != nil {
-		return false;
-	 }
-	
-	 return true;
+	 return err == nil;
+}
+
+func IsTokenValid2(token string) bool {
+	_, err := jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
+		_, ok := token.Method.(*jwt.SigningMethodECDSA)
+		if !ok {
+			return "", errors.New("unauthorized");
+		}
+		return "", nil
+
+	 })
+
+	 return err == nil;
 }
