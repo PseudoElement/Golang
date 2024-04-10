@@ -9,6 +9,10 @@ type ApiError struct{
 	Message string
 }
 
+func(e *ApiError) Error() string{
+	return e.Message;
+}
+
 func IncorrectQueryParams(w http.ResponseWriter) {
 	w.WriteHeader(http.StatusBadRequest);
 	json.NewEncoder(w).Encode(ApiError{Message: "Incorrect query parameters!"})

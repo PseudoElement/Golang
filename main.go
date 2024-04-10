@@ -7,8 +7,10 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	redis_service "github.com/pseudoelement/go-server/src/db/redis"
+	"github.com/joho/godotenv"
+	redis_module "github.com/pseudoelement/go-server/src/db/redis"
 	oneinch "github.com/pseudoelement/go-server/src/modules/1inch"
+	auth_module "github.com/pseudoelement/go-server/src/modules/auth"
 	crud "github.com/pseudoelement/go-server/src/modules/crud"
 )
 
@@ -16,8 +18,17 @@ import (
 func main() {
 	router := mux.NewRouter().StrictSlash(true);
 	r := router.PathPrefix("/api/v1").Subrouter();
+
+	err := godotenv.Load()
+	if err != nil {
+		fmt.Println(err)
+	}
 	
-	redis_service.Init();
+	redis_module.Init();
+
+	token, _ := auth_module.CreateToken(10);
+
+	fmt.Println("Token is ", token);
 	
 	oneinch.SetOneinchRoutes(r);
 	crud.SetcrudRoutes(r);
