@@ -16,20 +16,10 @@ func _registrationController(w http.ResponseWriter, req *http.Request){
 		return;
 	}
 	
-	err = auth_db.SaveNewUser(body);
+	tokenStruct, err := auth_services.HandleRegistration(w, body);
 	if err != nil {
 		api_main.FailResponse(w, err.Error(), err.Status())
 		return;
-	}
-
-	token, err := auth_services.CreateToken(40);
-	if err != nil {
-		api_main.FailResponse(w, err.Error(), err.Status())
-		return;
-	}
-
-	tokenStruct := auth_models.Token{
-		Token: token,
 	}
 
 	api_main.SuccessResponse(w, tokenStruct, http.StatusCreated)
@@ -42,24 +32,27 @@ func _loginController(w http.ResponseWriter, req *http.Request){
 		return;
 	}
 
-	user, err := auth_db.GetUser(body.Email)
+	userStruct, err := auth_services.HandleLogin(w, body)
 	if err != nil {
 		api_main.FailResponse(w, err.Error(), err.Status())
 		return;
-	}
-
-	token, err := auth_services.CreateToken(40);
-	if err != nil {
-		api_main.FailResponse(w, err.Error(), err.Status())
-		return;
-	}
-
-	userStruct := auth_models.UserWithToken{
-		Token: token,
-		Name: user.Name,
-		Email: user.Email,
-		Password: user.Password,
 	}
 
 	api_main.SuccessResponse(w, userStruct, http.StatusOK);
+}
+
+func _userController(w http.ResponseWriter, req *http.Request){
+	params, err := api_main.MapQueryParams(req, "email")
+	if err != nil{
+		api_main.FailResponse(w, err.Error(), err.Status())
+		return;
+	}
+
+	user, err := auth_db.GetUser(params["email"]);
+	if err != nil {
+		api_main.FailResponse(w, err.Error(), err.Status())
+		return;
+	}
+
+	api_main.SuccessResponse(w, user, http.StatusOK);
 }

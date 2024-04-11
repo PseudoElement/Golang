@@ -11,7 +11,11 @@ import (
 
 
 func MakeQuoteRequest(w http.ResponseWriter, req *http.Request) (oneinch_models.QuoteRes, error) {
-	quoteParams := api_main.MapQueryParams(req, "src", "dst", "amount", "chainId");
+	quoteParams, err := api_main.MapQueryParams(req, "src", "dst", "amount", "chainId");
+	if err != nil{
+		return oneinch_models.QuoteRes{}, err;
+	}
+
 	quoteHeaders := map[string]string{"Authorization": oneinch_consts.ONEINCH_AUTHORIZATION_HEADER_VALUE};
 	quoteUrl := fmt.Sprintf("%v/%v/quote", oneinch_consts.ONEINCH_API_URL, quoteParams["chainId"]);
 
@@ -24,7 +28,11 @@ func MakeQuoteRequest(w http.ResponseWriter, req *http.Request) (oneinch_models.
 }
 
 func MakeSwapRequest(w http.ResponseWriter, req *http.Request) (oneinch_models.SwapRes, error) {
-	params := api_main.MapQueryParams(req, "src", "dst", "amount", "chainId", "from", "receiver", "slippage");
+	params, err := api_main.MapQueryParams(req, "src", "dst", "amount", "chainId", "from", "receiver", "slippage");
+	if err != nil{
+		return oneinch_models.SwapRes{}, err;
+	}
+
 	headers := map[string]string{"Authorization": oneinch_consts.ONEINCH_AUTHORIZATION_HEADER_VALUE};
 	url := fmt.Sprintf("%v/%v/swap", oneinch_consts.ONEINCH_API_URL, params["chainId"]);
 
@@ -49,7 +57,11 @@ func GetSpenderAddress(w http.ResponseWriter, chainId string) (oneinch_models.Ge
 }
 
 func GetTokenAllowance(w http.ResponseWriter, req *http.Request) (oneinch_models.GetTokenAllowanceRes, error) {
-	allQueryParams := api_main.MapQueryParams(req, "src", "chainId", "walletAddress");
+	allQueryParams, err := api_main.MapQueryParams(req, "src", "chainId", "walletAddress");
+	if err != nil{
+		return oneinch_models.GetTokenAllowanceRes{}, err;
+	}
+
 	headers := map[string]string{"Authorization": oneinch_consts.ONEINCH_AUTHORIZATION_HEADER_VALUE}
 	url := fmt.Sprintf("%v/%v/approve/allowance", oneinch_consts.ONEINCH_API_URL, allQueryParams["chainId"]);
 	params := map[string]string{"tokenAddress": allQueryParams["src"], "walletAddress": allQueryParams["walletAddress"]};

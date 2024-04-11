@@ -19,7 +19,7 @@ func CreateToken(expirationMin time.Duration) (string, errors_module.ErrorWithSt
 	claims["exp"] = time.Now().Add(expirationMin * time.Minute);
 	claims["authorized"] = true
 
-	secret := []byte(os.Getenv("JWT_SECRET_KEY"));
+	secret := []byte(os.Getenv("JWT_SECRET"));
 
 	token_string, err := token.SignedString(secret);
 	if err != nil {

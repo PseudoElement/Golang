@@ -17,7 +17,11 @@ func _helloController(w http.ResponseWriter, req *http.Request){
 func _getApproveConfigController(w http.ResponseWriter, req *http.Request) {
 	api_main.SetResponseHeaders(w, req);
 
-	params := api_main.MapQueryParams(req, "src", "amount", "chainId");
+	params, err := api_main.MapQueryParams(req, "src", "amount", "chainId");
+	if err != nil {
+		api_main.FailResponse(w, err.Error(), err.Status())
+		return;
+	}
 
 	approveObj, _ := oneinch_api.GetApproveConfig(w, params["chainId"], params["src"], params["amount"]);
 

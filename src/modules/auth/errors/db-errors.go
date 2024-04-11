@@ -6,19 +6,6 @@ import (
 	errors_module "github.com/pseudoelement/go-server/src/errors"
 )
 
-type AuthError struct {
-	message string
-	status  int
-}
-
-func (e *AuthError) Error() string {
-	return e.message
-}
-
-func (e *AuthError) Status() int {
-	return e.status
-}
-
 func UserAlreadyRegistered() errors_module.ErrorWithStatus {
 	return &AuthError{message: "User is already registered!", status: http.StatusBadRequest}
 }

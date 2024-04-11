@@ -10,14 +10,19 @@ import (
 	errors_module "github.com/pseudoelement/go-server/src/errors"
 )
 
-func MapQueryParams(req *http.Request, queryParams ...string) map[string]string {
+func MapQueryParams(req *http.Request, queryParamsKeys ...string) (map[string]string, errors_module.ErrorWithStatus) {
 	mapppedParams := make(map[string]string)
+	query := req.URL.Query();
 
-	for _, param := range queryParams {
-		mapppedParams[param] = req.URL.Query().Get(param);
+	for _, key := range queryParamsKeys {
+		param := query.Get(key);
+		if param == "" {
+			return mapppedParams, errors_module.IncorrectQueryParams()
+		}
+		mapppedParams[key] = param 
 	}
 
-	return mapppedParams;
+	return mapppedParams, nil;
 }
 
 /* Parses body to provided generic type and restricts body size to 1MB */
@@ -25,8 +30,8 @@ func ParseReqBody[T any](w http.ResponseWriter, req *http.Request)(T, errors_mod
 	req.Body = http.MaxBytesReader(w, req.Body, 1048576)
 	decoder := json.NewDecoder(req.Body);
 	decoder.DisallowUnknownFields();
-	body := new(T);
 
+	body := new(T);
 	err := decoder.Decode(&body); 
 	if err != nil {
         var syntaxError *json.SyntaxError
@@ -34,6 +39,8 @@ func ParseReqBody[T any](w http.ResponseWriter, req *http.Request)(T, errors_mod
 
         switch {
 			case errors.As(err, &syntaxError):
+				return *body, errors_module.BadlyFormedJson();
+
 			case errors.Is(err, io.ErrUnexpectedEOF):
 				return *body, errors_module.BadlyFormedJson();
 
