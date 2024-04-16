@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	errors_module "github.com/pseudoelement/go-server/src/errors"
+	"github.com/pseudoelement/go-server/src/utils"
 )
 
 func MapQueryParams(req *http.Request, queryParamsKeys ...string) (map[string]string, errors_module.ErrorWithStatus) {
@@ -32,7 +33,12 @@ func ParseReqBody[T any](w http.ResponseWriter, req *http.Request)(T, errors_mod
 	decoder.DisallowUnknownFields();
 
 	body := new(T);
-	err := decoder.Decode(&body); 
+	err := decoder.Decode(&body);
+
+	if hasEmpty, emptyField := utils.HasEmptyField(*body); hasEmpty {
+		return *body, errors_module.EmptyFieldInJson(emptyField);
+	}
+	
 	if err != nil {
         var syntaxError *json.SyntaxError
         var unmarshalTypeError *json.UnmarshalTypeError

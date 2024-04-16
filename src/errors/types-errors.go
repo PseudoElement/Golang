@@ -26,6 +26,12 @@ func UnknownFieldJson(errorMsg string) ErrorWithStatus {
 	return &JsonError{message: msg, status: http.StatusBadRequest}
 }
 
+func EmptyFieldInJson(fieldName string) ErrorWithStatus {
+	fieldNameToLower := strings.ToLower(fieldName);
+	msg := fmt.Sprintf("Request body has empty field - %s!", fieldNameToLower)
+	return &JsonError{message: msg, status: http.StatusBadRequest}
+}
+
 func BadlyFormedJson() ErrorWithStatus {
 	return &JsonError{message: "Request body contains badly-formed JSON", status: http.StatusBadRequest}
 }

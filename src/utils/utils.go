@@ -34,25 +34,3 @@ func Filter[T any](arr []T, fn func(value T, ind int) bool) []T {
 	}
 	return filtered
 }
-
-// func main() {
-// 	arr := []int{1, 2, 3, 4, 5}
-// 	found := find(arr, func(num int) bool {
-// 		return num >= 5
-// 	})
-
-// 	fmt.Println(found)
-
-// 	const str string = "System"
-// 	strToLower := strings.ToLower(str)
-
-// 	var strSlice []string
-// 	for _, char := range strToLower {
-// 		strSlice = append(strSlice, string(char))
-// 	}
-// 	var sLetterArr []string
-// 	sLetterArr = filter(strSlice, func(v string, ind int) bool {
-// 		return string(v) == "s"
-// 	})
-// 	fmt.Println(sLetterArr)
-// }

@@ -56,3 +56,7 @@ func _userController(w http.ResponseWriter, req *http.Request){
 
 	api_main.SuccessResponse(w, user, http.StatusOK);
 }
+
+func _allUsersController(w http.ResponseWriter, req *http.Request) {
+	
+}
