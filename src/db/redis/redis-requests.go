@@ -3,7 +3,10 @@ package redis_main
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 
+	errors_module "github.com/pseudoelement/go-server/src/errors"
+	auth_models "github.com/pseudoelement/go-server/src/modules/auth/models"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -28,6 +31,27 @@ func Get(key string) (string, error) {
 	}
 
 	return value, nil
+}
+
+func GetAll() ([]auth_models.UserRegister, errors_module.ErrorWithStatus) {
+	users_chan := make(chan []auth_models.UserRegister, 1)
+	var cursor uint64
+	var keys []string
+    for {
+        keys, nextCursor, err := client.Scan(ctx, cursor, "*", 10).Result()
+        if err != nil {
+            panic(err)
+        }
+
+        fmt.Println("Keys:", keys)
+
+        cursor = nextCursor
+
+        if cursor == 0 {
+            break
+        }
+    }
+	return []auth_models.UserRegister{}, nil;
 }
 
 func SetStruct[T any](key string, object T) error {

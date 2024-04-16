@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	api_main "github.com/pseudoelement/go-server/src/api"
+	redis_main "github.com/pseudoelement/go-server/src/db/redis"
 	auth_db "github.com/pseudoelement/go-server/src/modules/auth/db"
 	auth_models "github.com/pseudoelement/go-server/src/modules/auth/models"
 	auth_services "github.com/pseudoelement/go-server/src/modules/auth/services"
@@ -58,5 +59,6 @@ func _userController(w http.ResponseWriter, req *http.Request){
 }
 
 func _allUsersController(w http.ResponseWriter, req *http.Request) {
-	
+	redis_main.GetAll();
+	api_main.SuccessResponse(w, []string{"borrow", "kuzya"}, http.StatusOK);
 }
