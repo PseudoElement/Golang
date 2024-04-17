@@ -4,9 +4,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"sync"
+	"time"
 
 	errors_module "github.com/pseudoelement/go-server/src/errors"
 	auth_models "github.com/pseudoelement/go-server/src/modules/auth/models"
+	"github.com/pseudoelement/go-server/src/utils"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -34,24 +37,46 @@ func Get(key string) (string, error) {
 }
 
 func GetAll() ([]auth_models.UserRegister, errors_module.ErrorWithStatus) {
-	users_chan := make(chan []auth_models.UserRegister, 1)
+	start := time.Now()
+
 	var cursor uint64
-	var keys []string
+	var wg sync.WaitGroup;
+	var emails []string;
     for {
         keys, nextCursor, err := client.Scan(ctx, cursor, "*", 10).Result()
         if err != nil {
             panic(err)
         }
-
-        fmt.Println("Keys:", keys)
-
         cursor = nextCursor
-
         if cursor == 0 {
+			emails = keys;
             break
         }
     }
-	return []auth_models.UserRegister{}, nil;
+
+	users := make([]auth_models.UserRegister, len(emails))
+	
+	for _, email := range emails {
+		wg.Add(1);
+		go func (){
+			defer wg.Done();
+			user, _ := GetStruct[auth_models.UserRegister](email);
+			users = append(users, user)
+		}()
+	}
+
+	wg.Wait()
+
+	gotUsers := time.Since(start);
+	fmt.Printf("gotUsers took %s\n", gotUsers);
+	fmt.Println("Users - ", users);
+
+	notEmptyUsers := utils.Filter(users, func(user auth_models.UserRegister, i int) bool {
+		return user.Name != "" && user.Email != ""
+	})
+
+	fmt.Println("Filtered - ", notEmptyUsers);
+	return notEmptyUsers, nil;
 }
 
 func SetStruct[T any](key string, object T) error {

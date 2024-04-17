@@ -25,6 +25,7 @@ func main() {
 		fmt.Println(err)
 	}
 	
+	redis_main.GetAll();
 	redis_main.Init();
 
 	oneinch.SetOneinchRoutes(r);
