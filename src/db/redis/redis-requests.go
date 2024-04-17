@@ -44,12 +44,16 @@ func GetAll() ([]auth_models.UserRegister, errors_module.ErrorWithStatus) {
 	var emails []string;
     for {
         keys, nextCursor, err := client.Scan(ctx, cursor, "*", 10).Result()
+
+		if(len(keys) > len(emails)){
+			emails = keys;
+		}
+
         if err != nil {
             panic(err)
         }
         cursor = nextCursor
         if cursor == 0 {
-			emails = keys;
             break
         }
     }
@@ -69,13 +73,11 @@ func GetAll() ([]auth_models.UserRegister, errors_module.ErrorWithStatus) {
 
 	gotUsers := time.Since(start);
 	fmt.Printf("gotUsers took %s\n", gotUsers);
-	fmt.Println("Users - ", users);
 
 	notEmptyUsers := utils.Filter(users, func(user auth_models.UserRegister, i int) bool {
 		return user.Name != "" && user.Email != ""
 	})
 
-	fmt.Println("Filtered - ", notEmptyUsers);
 	return notEmptyUsers, nil;
 }
 
