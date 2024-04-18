@@ -9,6 +9,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
+	postgres_main "github.com/pseudoelement/go-server/src/db/postgres"
 	redis_main "github.com/pseudoelement/go-server/src/db/redis"
 	oneinch "github.com/pseudoelement/go-server/src/modules/1inch"
 	auth_main "github.com/pseudoelement/go-server/src/modules/auth"
@@ -25,8 +26,8 @@ func main() {
 		fmt.Println(err)
 	}
 	
-	redis_main.GetAll();
 	redis_main.Init();
+	postgres_main.Init();
 
 	oneinch.SetOneinchRoutes(r);
 	crud.SetCrudRoutes(r);

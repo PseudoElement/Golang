@@ -59,6 +59,6 @@ func _userController(w http.ResponseWriter, req *http.Request){
 }
 
 func _allUsersController(w http.ResponseWriter, req *http.Request) {
-	redis_main.GetAll();
+	redis_main.GetAllUsers();
 	api_main.SuccessResponse(w, []string{"borrow", "kuzya"}, http.StatusOK);
 }

@@ -36,18 +36,16 @@ func Get(key string) (string, error) {
 	return value, nil
 }
 
-func GetAll() ([]auth_models.UserRegister, errors_module.ErrorWithStatus) {
+func GetAllUsers() ([]auth_models.UserRegister, errors_module.ErrorWithStatus) {
 	start := time.Now()
 
 	var cursor uint64
 	var wg sync.WaitGroup;
 	var emails []string;
     for {
-        keys, nextCursor, err := client.Scan(ctx, cursor, "*", 10).Result()
+        newEmails, nextCursor, err := client.Scan(ctx, cursor, "*", 10).Result()
 
-		if(len(keys) > len(emails)){
-			emails = keys;
-		}
+		emails = getUpdatedEmailsList(newEmails, emails);
 
         if err != nil {
             panic(err)
@@ -77,6 +75,7 @@ func GetAll() ([]auth_models.UserRegister, errors_module.ErrorWithStatus) {
 	notEmptyUsers := utils.Filter(users, func(user auth_models.UserRegister, i int) bool {
 		return user.Name != "" && user.Email != ""
 	})
+	fmt.Println(notEmptyUsers)
 
 	return notEmptyUsers, nil;
 }
@@ -111,4 +110,16 @@ func GetStruct[T any](key string) (T, error) {
 		return *res_generic, err
 	}
 	return *res_generic, nil
+}
+
+func getUpdatedEmailsList(newEmails []string, oldEmails []string) []string{
+	var updatedEmails []string
+	for _, newEmail := range newEmails {
+		if !utils.Contains(oldEmails, newEmail){
+			updatedEmails = append(updatedEmails, newEmail)
+		}
+	}
+	updatedEmails = append(updatedEmails, oldEmails...)
+
+	return updatedEmails;
 }

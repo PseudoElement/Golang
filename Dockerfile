@@ -1,9 +1,9 @@
 # Use the official Golang image as the base image
 FROM golang:latest
 
-# Set environment variables
-ENV JWT_SECRET="Sintol"
-ENV PORT="127.0.0.1:8080"
+# # Set environment variables
+# ENV JWT_SECRET="Sintol"
+# ENV PORT="127.0.0.1:8080"
 
 # Set the working directory inside the container
 WORKDIR /app

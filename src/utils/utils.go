@@ -1,16 +1,18 @@
 package utils
 
-// type T int
-// type K int
+import "reflect"
 
-var MyTicket = Ticket{
-	Name: "Hello",
-	Date: 124314,
-	Price: 111111,
-}
+type conditionWithIndex[T any] func(val T, ind int) bool
 
-func LogTicket() Ticket {
-	return MyTicket;
+func Contains[T any](arr []T, val any) bool {
+	for _, el := range arr {
+		reflected_el := reflect.ValueOf(el);
+		reflected_val := reflect.ValueOf(val);
+		if reflected_el.Interface() == reflected_val.Interface() {
+			return true
+		}
+	}
+	return false
 }
 
 func Find[T any](arr []T, cond func(T) bool) interface{} {
@@ -20,14 +22,13 @@ func Find[T any](arr []T, cond func(T) bool) interface{} {
 			return el
 		}
 	}
-
 	return nil
 }
 
-func Filter[T any](arr []T, fn func(value T, ind int) bool) []T {
+func Filter[T any](arr []T, cond conditionWithIndex[T]) []T {
 	var filtered []T
 	for i, el := range arr {
-		needPush := fn(el, i)
+		needPush := cond(el, i)
 		if needPush {
 			filtered = append(filtered, el)
 		}
