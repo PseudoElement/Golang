@@ -8,26 +8,31 @@ import (
 )
 
 const (
-	host     = "localhost"
+	host     = "postgres"
 	port     = 5432
 	user     = "postgres"
-	password = "your-password"
-	dbname   = "calhounio_demo"
+	password = "postgres"
+	dbname   = "postgres"
 )
 
+var DB *sql.DB
+
 func Init() {
-	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
-	db, err := sql.Open("postgres", psqlInfo)
+	psqlInfo := fmt.Sprintf(
+		"host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", 
+		host, 
+		port, 
+		user, 
+		password, 
+		dbname)
+	DB, _ = sql.Open("postgres", psqlInfo)
+
+	// createDbIfNotExists()
+	createTestTableIfNotExists()
+	defer DB.Close()
+
+	err := DB.Ping()
 	if err != nil{
 		panic(err)
 	}
-
-	defer db.Close()
-
-	err = db.Ping()
-	if err != nil{
-		panic(err)
-	}
-
-	fmt.Println("Postgres successfully connected!")	
 }

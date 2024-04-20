@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"time"
 
 	"log"
 	"net/http"
@@ -25,9 +26,14 @@ func main() {
 	if err != nil {
 		fmt.Println(err)
 	}
+
+	fmt.Println("Server started!");
 	
+	time.Sleep(2 * time.Second);
 	redis_main.Init();
+	fmt.Println("Redis started!");
 	postgres_main.Init();
+	fmt.Println("PostgreSQL started!");
 
 	oneinch.SetOneinchRoutes(r);
 	crud.SetCrudRoutes(r);

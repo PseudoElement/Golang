@@ -1,14 +1,14 @@
 version: '3.8'
 
 services:
-  # redis:
-  #   container_name: redis
-  #   image: redis:latest
-  #   ports:
-  #     - "6379:6379"
+  redis:
+    container_name: redis
+    image: redis:latest
+    ports:
+      - "6379:6379"
 
-  go-app:
-    container_name: go-app
+  app:
+    container_name: app
     build: .
     ports:
       - "8080:8080"
@@ -17,35 +17,35 @@ services:
       - PORT=127.0.0.1:8080
     depends_on:
       - redis
-    #   - postgres
+      - postgres
 
-#   postgres:
-#     container_name: postgres
-#     image: postgres:latest
-#     environment:
-#       POSTGRES_PASSWORD: postgres
-#       POSTGRES_USER: postgres
-#       POSTGRES_DB: postgres
-#     volumes:
-#       - pgdata:/var/lib/postgresql/data
-#     ports:
-#       - "5432:5432"
+  postgres:
+    container_name: postgres
+    image: postgres:latest
+    environment:
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=postgres
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
   
-#   pgadmin:
-#     container_name: pgadmin
-#     image: dpage/pgadmin4
-#     restart: always
-#     environment:
-#       PGADMIN_DEFAULT_EMAIL: admin@admin.com
-#       PGADMIN_DEFAULT_PASSWORD: pgadmin
-#       PGADMIN_CONFIG_SERVER_MODE: 'False'
-#     ports:
-#       - 127.0.0.1:5050:80
-#     depends_on:
-#       - postgres
-#     volumes: 
-#       - pgadmin:/var/www/go/docker-volumes/pgadmin
+  pgadmin:
+    container_name: pgadmin
+    image: dpage/pgadmin4
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: pgadmin
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    ports:
+      - 127.0.0.1:5050:80
+    depends_on:
+      - postgres
+    volumes: 
+      - pgadmin:/var/www/go/docker-volumes/pgadmin
 
-# volumes:
-#   pgdata: 
-#   pgadmin: 
+volumes:
+  pgdata: 
+  pgadmin: 
