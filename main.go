@@ -15,7 +15,7 @@ import (
 	redis_main "github.com/pseudoelement/go-server/src/db/redis"
 	oneinch "github.com/pseudoelement/go-server/src/modules/1inch"
 	auth_main "github.com/pseudoelement/go-server/src/modules/auth"
-	crud "github.com/pseudoelement/go-server/src/modules/crud"
+	"github.com/pseudoelement/go-server/src/modules/cards"
 )
 
 func main() {
@@ -38,17 +38,28 @@ func main() {
 	db := pg.GetDB()
 	fmt.Println("PostgreSQL started!")
 
-	q := queries.GetInstance(db)
-	err = q.CreateTable()
-	if err != nil {
-		panic(err)
-	}
-	q.AddCard("Korben Dallas", "Tanki govno!!!")
+	//queries
+	cardsQueries := queries.NewCardsQueries(db)
 
+	//modules
+	cardsModule := cards.NewCardsModule(cardsQueries, r)
+
+	initAllTables([]postgres_main.TableCreator{cardsQueries})
+
+	cardsModule.SetCardsRoutes()
 	oneinch.SetOneinchRoutes(r)
-	crud.SetCrudRoutes(r)
 	auth_main.SetAuthRoutes(r)
 
 	fmt.Println("Listening port 8080...")
 	log.Fatal(http.ListenAndServe(os.Getenv("PORT"), r))
+}
+
+func initAllTables(queries []postgres_main.TableCreator) error {
+	for _, q := range queries {
+		if err := q.CreateTable(); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
