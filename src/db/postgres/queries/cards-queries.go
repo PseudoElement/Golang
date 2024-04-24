@@ -92,3 +92,33 @@ func (cq *CardsQueries) GetCard(id string) (CardFromDB, errors_module.ErrorWithS
 
 	return card, nil
 }
+
+func (cq *CardsQueries) GetAllSortedCard(sortBy string, sortDir string, page int, limitPerPage int) ([]CardFromDB, errors_module.ErrorWithStatus) {
+	query := `
+		SELECT * FROM cards 
+		ORDER BY ` + sortBy + ` ` + sortDir + `
+		LIMIT $1 OFFSET $2;
+	`
+	offset := (page - 1) * limitPerPage
+
+	rows, queryErr := cq.db.Query(query, limitPerPage, offset)
+	if queryErr != nil {
+		return nil, errors_module.DbDefaultError(queryErr.Error())
+	}
+	defer rows.Close()
+
+	var cards []CardFromDB
+	for rows.Next() {
+		var card CardFromDB
+		if err := rows.Scan(&card.Id, &card.Info, &card.Author, &card.CreatedAt, &card.UpdatedAt); err != nil {
+			return nil, errors_module.DbDefaultError(err.Error())
+		}
+		cards = append(cards, card)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, errors_module.DbDefaultError(err.Error())
+	}
+
+	return cards, nil
+}

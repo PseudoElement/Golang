@@ -89,11 +89,29 @@ func (m *CardsModule) _getCarByIdController(w http.ResponseWriter, req *http.Req
 		return
 	}
 
-	card, err := m.cq.GetCard(params["id"])
+	cardDb, err := m.cq.GetCard(params["id"])
 	if err != nil {
 		api_main.FailResponse(w, err.Error(), err.Status())
 		return
 	}
 
-	api_main.SuccessResponse(w, card, http.StatusOK)
+	cardToClient := m.convertCardToClient(cardDb)
+
+	api_main.SuccessResponse(w, cardToClient, http.StatusOK)
+}
+
+func (m *CardsModule) _getAllCarByIdController(w http.ResponseWriter, req *http.Request) {
+	params, err := api_main.MapQueryParams(req, "sortBy", "sortDir", "page", "limitPerPage")
+	if err != nil {
+		api_main.FailResponse(w, err.Error(), err.Status())
+		return
+	}
+
+	cards, err := m.getSortedCards(params)
+	if err != nil {
+		api_main.FailResponse(w, err.Error(), err.Status())
+		return
+	}
+
+	api_main.SuccessResponse(w, cards, http.StatusOK)
 }

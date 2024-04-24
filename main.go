@@ -46,9 +46,9 @@ func main() {
 
 	initAllTables([]postgres_main.TableCreator{cardsQueries})
 
-	cardsModule.SetCardsRoutes()
-	oneinch.SetOneinchRoutes(r)
-	auth_main.SetAuthRoutes(r)
+	cardsModule.SetRoutes()
+	oneinch.SetRoutes(r)
+	auth_main.SetRoutes(r)
 
 	fmt.Println("Listening port 8080...")
 	log.Fatal(http.ListenAndServe(os.Getenv("PORT"), r))

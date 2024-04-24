@@ -21,7 +21,7 @@ type CardGet struct {
 type CardToClient struct {
 	Author    string `json:"author"`
 	Info      string `json:"info"`
-	CreatedAt string `json:"created_at"`
-	UpdatedAt string `json:"updated_at"`
+	CreatedAt string `json:"createdAt"`
+	UpdatedAt string `json:"updatedAt"`
 	Id        string `json:"id"`
 }
