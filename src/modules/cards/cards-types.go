@@ -6,8 +6,9 @@ type NewCard struct {
 }
 
 type CardUpdate struct {
-	NewCard
-	Id string `json:"id"`
+	Author string `json:"author"`
+	Info   string `json:"info"`
+	Id     string `json:"id"`
 }
 
 type CardDelete struct {
@@ -24,4 +25,8 @@ type CardToClient struct {
 	CreatedAt string `json:"createdAt"`
 	UpdatedAt string `json:"updatedAt"`
 	Id        string `json:"id"`
+}
+
+type CardActionSuccess struct {
+	Message string `json:"message"`
 }

@@ -7,6 +7,7 @@ import (
 )
 
 func SetRoutes(router *mux.Router) {
+	router.HandleFunc("/healthcheck", _healthcheckController).Methods(http.MethodGet)
 	router.HandleFunc("/auth/user", _userController).Methods(http.MethodGet)
 	router.HandleFunc("/auth/users", _allUsersController).Methods(http.MethodGet)
 	router.HandleFunc("/auth/register", _registrationController).Methods(http.MethodPost)

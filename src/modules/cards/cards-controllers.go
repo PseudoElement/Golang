@@ -17,11 +17,6 @@ func NewCardsModule(cardQueries *queries.CardsQueries, router *mux.Router) *Card
 	return &CardsModule{cq: cardQueries, router: router}
 }
 
-func (m *CardsModule) _healthcheckController(w http.ResponseWriter, req *http.Request) {
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("Server is alive!"))
-}
-
 func (m *CardsModule) _addCardController(w http.ResponseWriter, req *http.Request) {
 	body, err := api_main.ParseReqBody[NewCard](w, req)
 	if err != nil {
@@ -35,8 +30,8 @@ func (m *CardsModule) _addCardController(w http.ResponseWriter, req *http.Reques
 		return
 	}
 
-	res := struct{ message string }{
-		message: "Card successfully saved.",
+	res := CardActionSuccess{
+		Message: "Card successfully saved.",
 	}
 
 	api_main.SuccessResponse(w, res, http.StatusCreated)
@@ -55,8 +50,8 @@ func (m *CardsModule) _updateCardController(w http.ResponseWriter, req *http.Req
 		return
 	}
 
-	res := struct{ message string }{
-		message: "Card successfully updated.",
+	res := CardActionSuccess{
+		Message: "Card successfully updated.",
 	}
 
 	api_main.SuccessResponse(w, res, http.StatusCreated)

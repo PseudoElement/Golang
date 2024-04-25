@@ -2,10 +2,10 @@ package queries
 
 import (
 	"database/sql"
-	"errors"
 	"time"
 
 	"github.com/google/uuid"
+	postgres_main "github.com/pseudoelement/go-server/src/db/postgres"
 	errors_module "github.com/pseudoelement/go-server/src/errors"
 )
 
@@ -54,43 +54,29 @@ func (cq *CardsQueries) UpdateCard(id string, newInfo string, newAuthor string) 
 
 	if newAuthor != "" {
 		query = `UPDATE cards SET info = $1, author = $2 WHERE id = $3;`
-		_, err := cq.db.Exec(query, newInfo, newAuthor, id)
-		if err != nil {
-			return errors_module.DbDefaultError(err.Error())
-		}
+		r, err := cq.db.Exec(query, newInfo, newAuthor, id)
+
+		return postgres_main.HandleExecErrors(r, err)
 	} else {
 		query = `UPDATE cards SET info = $1 WHERE id = $2;`
-		_, err := cq.db.Exec(query, newInfo, id)
-		if err != nil {
-			return errors_module.DbDefaultError(err.Error())
-		}
-	}
+		r, err := cq.db.Exec(query, newInfo, newAuthor, id)
 
-	return nil
+		return postgres_main.HandleExecErrors(r, err)
+	}
 }
 
 func (cq *CardsQueries) DeleteCard(id string) errors_module.ErrorWithStatus {
-	_, err := cq.db.Exec(`DELETE FROM cards WHERE id = $1;`, id)
-	if err != nil {
-		return errors_module.DbDefaultError(err.Error())
-	}
+	r, err := cq.db.Exec(`DELETE FROM cards WHERE id = $1;`, id)
 
-	return nil
+	return postgres_main.HandleExecErrors(r, err)
 }
 
 func (cq *CardsQueries) GetCard(id string) (CardFromDB, errors_module.ErrorWithStatus) {
 	row := cq.db.QueryRow(`SELECT * FROM cards WHERE id = $1;`, id)
 	var card CardFromDB
-
 	err := row.Scan(&card.Id, &card.Info, &card.Author, &card.CreatedAt, &card.UpdatedAt)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return CardFromDB{}, errors_module.DbDefaultError("Card not found!")
-		}
-		return CardFromDB{}, errors_module.DbDefaultError(err.Error())
-	}
 
-	return card, nil
+	return postgres_main.HandleQueryRowErrors(card, err)
 }
 
 func (cq *CardsQueries) GetAllSortedCard(sortBy string, sortDir string, page int, limitPerPage int) ([]CardFromDB, errors_module.ErrorWithStatus) {

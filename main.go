@@ -44,7 +44,10 @@ func main() {
 	//modules
 	cardsModule := cards.NewCardsModule(cardsQueries, r)
 
-	initAllTables([]postgres_main.TableCreator{cardsQueries})
+	initErr := initAllTables([]postgres_main.TableCreator{cardsQueries})
+	if initErr != nil {
+		panic(initErr)
+	}
 
 	cardsModule.SetRoutes()
 	oneinch.SetRoutes(r)
