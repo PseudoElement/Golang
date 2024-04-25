@@ -1,4 +1,4 @@
-package queries
+package cards_queries
 
 type CardFromDB struct {
 	Author    string `json:"author"`

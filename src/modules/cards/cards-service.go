@@ -2,15 +2,22 @@ package cards
 
 import (
 	"strconv"
+	"strings"
 
+	cards_queries "github.com/pseudoelement/go-server/src/db/postgres/queries/cards"
 	errors_module "github.com/pseudoelement/go-server/src/errors"
+	"github.com/pseudoelement/go-server/src/utils"
 )
 
-func (m *CardsModule) getSortedCards(params map[string]string) ([]CardToClient, errors_module.ErrorWithStatus) {
+func (m *CardsModule) getSortedCards(params map[string]string) ([]cards_queries.CardFromDB, errors_module.ErrorWithStatus) {
 	page, _ := strconv.Atoi(params["page"])
 	limitPerPage, _ := strconv.Atoi(params["limitPerPage"])
 
-	cardsDB, err := m.cq.GetAllSortedCard(
+	if err := m.checkGetSortedCardsQueryValues(params); err != nil {
+		return nil, err
+	}
+
+	cards, err := m.cq.GetAllSortedCard(
 		params["sortBy"],
 		params["sortDir"],
 		page,
@@ -19,10 +26,21 @@ func (m *CardsModule) getSortedCards(params map[string]string) ([]CardToClient, 
 		return nil, err
 	}
 
-	var cardsToClient []CardToClient
-	for _, cardDb := range cardsDB {
-		cardsToClient = append(cardsToClient, m.convertCardToClient(cardDb))
+	return cards, nil
+}
+
+func (m *CardsModule) checkGetSortedCardsQueryValues(params map[string]string) errors_module.ErrorWithStatus {
+	sortByValues := []string{"created_at", "updated_at", "author", "info"}
+	sortDirValues := []string{"asc", "desc"}
+	sortByToLower := strings.ToLower(params["sortBy"])
+	sortDirToLower := strings.ToLower(params["sortDir"])
+
+	if !utils.Contains(sortByValues, sortByToLower) {
+		return errors_module.IncorrectQueryParamValue("sortBy")
+	}
+	if !utils.Contains(sortDirValues, sortDirToLower) {
+		return errors_module.IncorrectQueryParamValue("sortDir")
 	}
 
-	return cardsToClient, nil
+	return nil
 }

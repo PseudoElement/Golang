@@ -1,6 +1,9 @@
 package errors_module
 
-import "net/http"
+import (
+	"fmt"
+	"net/http"
+)
 
 type ApiError struct {
 	message string
@@ -17,6 +20,11 @@ func (e *ApiError) Status() int {
 
 func IncorrectQueryParams() ErrorWithStatus {
 	return &ApiError{message: "Incorrect query parameters!", status: http.StatusBadRequest}
+}
+
+func IncorrectQueryParamValue(key string) ErrorWithStatus {
+	msg := fmt.Sprintf("Incorrect value in parameter `%v`", key)
+	return &ApiError{message: msg, status: http.StatusBadRequest}
 }
 
 func Unauthorized() ErrorWithStatus {

@@ -13,17 +13,22 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-func Set[T comparable](key string, value T) error {
-	err := client.Set(ctx, key, value, 0).Err()
+func (r *RedisDB) Set(key string, value interface{}) error {
+	json, err := json.Marshal(value)
 	if err != nil {
-		panic(err)
+		return err
+	}
+
+	err = r.client.Set(r.ctx, key, json, 0).Err()
+	if err != nil {
+		return err
 	}
 
 	return nil
 }
 
-func Get(key string) (string, error) {
-	value, err := client.Get(ctx, key).Result()
+func (r *RedisDB) Get(key string) (string, error) {
+	value, err := r.client.Get(r.ctx, key).Result()
 
 	if err == redis.Nil {
 		return "", errors.New("value equals to null")
@@ -36,16 +41,16 @@ func Get(key string) (string, error) {
 	return value, nil
 }
 
-func GetAllUsers() ([]auth_models.UserRegister, errors_module.ErrorWithStatus) {
+func (r *RedisDB) GetAllUsers() ([]auth_models.UserToClient, errors_module.ErrorWithStatus) {
 	start := time.Now()
 
 	var cursor uint64
 	var wg sync.WaitGroup
 	var emails []string
 	for {
-		newEmails, nextCursor, err := client.Scan(ctx, cursor, "*", 10).Result()
+		newEmails, nextCursor, err := r.client.Scan(r.ctx, cursor, "*", 10).Result()
 
-		emails = getUpdatedEmailsList(newEmails, emails)
+		emails = r.getUpdatedEmailsList(newEmails, emails)
 
 		if err != nil {
 			panic(err)
@@ -56,14 +61,17 @@ func GetAllUsers() ([]auth_models.UserRegister, errors_module.ErrorWithStatus) {
 		}
 	}
 
-	users := make([]auth_models.UserRegister, len(emails))
+	users := make([]auth_models.UserToClient, len(emails))
 
 	for _, email := range emails {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			user, _ := GetStruct[auth_models.UserRegister](email)
-			users = append(users, user)
+			var user auth_models.UserToClient
+			err := r.GetStruct(email, &user)
+			if err == nil {
+				users = append(users, user)
+			}
 		}()
 	}
 
@@ -72,7 +80,7 @@ func GetAllUsers() ([]auth_models.UserRegister, errors_module.ErrorWithStatus) {
 	gotUsers := time.Since(start)
 	fmt.Printf("gotUsers took %s\n", gotUsers)
 
-	notEmptyUsers := utils.Filter(users, func(user auth_models.UserRegister, i int) bool {
+	notEmptyUsers := utils.Filter(users, func(user auth_models.UserToClient, i int) bool {
 		return user.Name != "" && user.Email != ""
 	})
 	fmt.Println(notEmptyUsers)
@@ -80,13 +88,13 @@ func GetAllUsers() ([]auth_models.UserRegister, errors_module.ErrorWithStatus) {
 	return notEmptyUsers, nil
 }
 
-func SetStruct[T any](key string, object T) error {
-	json, err := json.Marshal(object)
+func (r *RedisDB) SetStruct(key string, object interface{}) error {
+	jsonBytes, err := json.Marshal(object)
 	if err != nil {
 		return err
 	}
 
-	err = client.Set(ctx, key, json, 0).Err()
+	err = r.client.Set(r.ctx, key, jsonBytes, 0).Err()
 	if err != nil {
 		return err
 	}
@@ -94,25 +102,24 @@ func SetStruct[T any](key string, object T) error {
 	return nil
 }
 
-func GetStruct[T any](key string) (T, error) {
-	json_string, err := client.Get(ctx, key).Result()
-	res_generic := new(T)
+func (r *RedisDB) GetStruct(key string, structToAppendValue interface{}) error {
+	json_string, err := r.client.Get(r.ctx, key).Result()
 
 	if err == redis.Nil {
-		return *res_generic, errors.New("value equals to null")
+		return errors.New("value equals to null")
 	} else if json_string == "" {
-		return *res_generic, errors.New("value is empty")
+		return errors.New("value is empty")
 	} else if err != nil {
-		return *res_generic, err
+		return err
 	}
 
-	if err := json.Unmarshal([]byte(json_string), &res_generic); err != nil {
-		return *res_generic, err
+	if err := json.Unmarshal([]byte(json_string), &structToAppendValue); err != nil {
+		return err
 	}
-	return *res_generic, nil
+	return nil
 }
 
-func getUpdatedEmailsList(newEmails []string, oldEmails []string) []string {
+func (r *RedisDB) getUpdatedEmailsList(newEmails []string, oldEmails []string) []string {
 	var updatedEmails []string
 	for _, newEmail := range newEmails {
 		if !utils.Contains(oldEmails, newEmail) {

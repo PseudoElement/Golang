@@ -1,4 +1,4 @@
-package queries
+package cards_queries
 
 import (
 	"database/sql"

@@ -1,28 +1,25 @@
-package auth_main
+package auth
 
 import (
 	"net/http"
 
 	api_main "github.com/pseudoelement/go-server/src/api"
-	redis_main "github.com/pseudoelement/go-server/src/db/redis"
-	auth_db "github.com/pseudoelement/go-server/src/modules/auth/db"
 	auth_models "github.com/pseudoelement/go-server/src/modules/auth/models"
-	auth_services "github.com/pseudoelement/go-server/src/modules/auth/services"
 )
 
-func _healthcheckController(w http.ResponseWriter, req *http.Request) {
+func (m *AuthModule) _healthcheckController(w http.ResponseWriter, req *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("Server is alive!"))
 }
 
-func _registrationController(w http.ResponseWriter, req *http.Request) {
+func (m *AuthModule) _registrationController(w http.ResponseWriter, req *http.Request) {
 	body, err := api_main.ParseReqBody[auth_models.UserRegister](w, req)
 	if err != nil {
 		api_main.FailResponse(w, err.Error(), err.Status())
 		return
 	}
 
-	tokenStruct, err := auth_services.HandleRegistration(w, body)
+	tokenStruct, err := m.handleRegistration(w, body)
 	if err != nil {
 		api_main.FailResponse(w, err.Error(), err.Status())
 		return
@@ -31,14 +28,14 @@ func _registrationController(w http.ResponseWriter, req *http.Request) {
 	api_main.SuccessResponse(w, tokenStruct, http.StatusCreated)
 }
 
-func _loginController(w http.ResponseWriter, req *http.Request) {
+func (m *AuthModule) _loginController(w http.ResponseWriter, req *http.Request) {
 	body, err := api_main.ParseReqBody[auth_models.UserLogin](w, req)
 	if err != nil {
 		api_main.FailResponse(w, err.Error(), err.Status())
 		return
 	}
 
-	userStruct, err := auth_services.HandleLogin(w, body)
+	userStruct, err := m.handleLogin(w, body)
 	if err != nil {
 		api_main.FailResponse(w, err.Error(), err.Status())
 		return
@@ -47,14 +44,14 @@ func _loginController(w http.ResponseWriter, req *http.Request) {
 	api_main.SuccessResponse(w, userStruct, http.StatusOK)
 }
 
-func _userController(w http.ResponseWriter, req *http.Request) {
+func (m *AuthModule) _userController(w http.ResponseWriter, req *http.Request) {
 	params, err := api_main.MapQueryParams(req, "email")
 	if err != nil {
 		api_main.FailResponse(w, err.Error(), err.Status())
 		return
 	}
 
-	user, err := auth_db.GetUser(params["email"])
+	user, err := m.dbSrv.GetUser(params["email"])
 	if err != nil {
 		api_main.FailResponse(w, err.Error(), err.Status())
 		return
@@ -63,8 +60,8 @@ func _userController(w http.ResponseWriter, req *http.Request) {
 	api_main.SuccessResponse(w, user, http.StatusOK)
 }
 
-func _allUsersController(w http.ResponseWriter, req *http.Request) {
-	users, err := redis_main.GetAllUsers()
+func (m *AuthModule) _allUsersController(w http.ResponseWriter, req *http.Request) {
+	users, err := m.redis.GetAllUsers()
 	if err != nil {
 		api_main.FailResponse(w, err.Error(), err.Status())
 		return

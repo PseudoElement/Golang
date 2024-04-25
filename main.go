@@ -11,10 +11,10 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
 	postgres_main "github.com/pseudoelement/go-server/src/db/postgres"
-	"github.com/pseudoelement/go-server/src/db/postgres/queries"
+	cards_queries "github.com/pseudoelement/go-server/src/db/postgres/queries/cards"
 	redis_main "github.com/pseudoelement/go-server/src/db/redis"
 	oneinch "github.com/pseudoelement/go-server/src/modules/1inch"
-	auth_main "github.com/pseudoelement/go-server/src/modules/auth"
+	"github.com/pseudoelement/go-server/src/modules/auth"
 	"github.com/pseudoelement/go-server/src/modules/cards"
 )
 
@@ -30,7 +30,8 @@ func main() {
 	fmt.Println("Server started!")
 	time.Sleep(1 * time.Second)
 
-	redis_main.Init()
+	redisInstance := redis_main.GetInstance()
+	redisInstance.Init()
 	fmt.Println("Redis started!")
 
 	pg := postgres_main.GetInstance()
@@ -39,10 +40,13 @@ func main() {
 	fmt.Println("PostgreSQL started!")
 
 	//queries
-	cardsQueries := queries.NewCardsQueries(db)
+	cardsQueries := cards_queries.NewCardsQueries(db)
+	//
 
 	//modules
-	cardsModule := cards.NewCardsModule(cardsQueries, r)
+	cardsModule := cards.NewModule(cardsQueries, r)
+	authModule := auth.NewModule(redisInstance)
+	//
 
 	initErr := initAllTables([]postgres_main.TableCreator{cardsQueries})
 	if initErr != nil {
@@ -50,19 +54,9 @@ func main() {
 	}
 
 	cardsModule.SetRoutes()
+	authModule.SetRoutes(r)
 	oneinch.SetRoutes(r)
-	auth_main.SetRoutes(r)
 
 	fmt.Println("Listening port 8080...")
 	log.Fatal(http.ListenAndServe(os.Getenv("PORT"), r))
-}
-
-func initAllTables(queries []postgres_main.TableCreator) error {
-	for _, q := range queries {
-		if err := q.CreateTable(); err != nil {
-			return err
-		}
-	}
-
-	return nil
 }

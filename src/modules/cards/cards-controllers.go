@@ -3,19 +3,8 @@ package cards
 import (
 	"net/http"
 
-	"github.com/gorilla/mux"
 	api_main "github.com/pseudoelement/go-server/src/api"
-	"github.com/pseudoelement/go-server/src/db/postgres/queries"
 )
-
-type CardsModule struct {
-	cq     *queries.CardsQueries
-	router *mux.Router
-}
-
-func NewCardsModule(cardQueries *queries.CardsQueries, router *mux.Router) *CardsModule {
-	return &CardsModule{cq: cardQueries, router: router}
-}
 
 func (m *CardsModule) _addCardController(w http.ResponseWriter, req *http.Request) {
 	body, err := api_main.ParseReqBody[NewCard](w, req)
@@ -70,8 +59,8 @@ func (m *CardsModule) _deleteCardController(w http.ResponseWriter, req *http.Req
 		return
 	}
 
-	res := struct{ message string }{
-		message: "Card successfully deleted.",
+	res := CardActionSuccess{
+		Message: "Card successfully deleted.",
 	}
 
 	api_main.SuccessResponse(w, res, http.StatusCreated)
@@ -95,7 +84,7 @@ func (m *CardsModule) _getCarByIdController(w http.ResponseWriter, req *http.Req
 	api_main.SuccessResponse(w, cardToClient, http.StatusOK)
 }
 
-func (m *CardsModule) _getAllCarByIdController(w http.ResponseWriter, req *http.Request) {
+func (m *CardsModule) _getAllSortedCardController(w http.ResponseWriter, req *http.Request) {
 	params, err := api_main.MapQueryParams(req, "sortBy", "sortDir", "page", "limitPerPage")
 	if err != nil {
 		api_main.FailResponse(w, err.Error(), err.Status())
