@@ -83,7 +83,6 @@ func (r *RedisDB) GetAllUsers() ([]auth_models.UserToClient, errors_module.Error
 	notEmptyUsers := utils.Filter(users, func(user auth_models.UserToClient, i int) bool {
 		return user.Name != "" && user.Email != ""
 	})
-	fmt.Println(notEmptyUsers)
 
 	return notEmptyUsers, nil
 }
