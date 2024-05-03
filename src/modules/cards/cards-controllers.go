@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	api_main "github.com/pseudoelement/go-server/src/api"
+	types_module "github.com/pseudoelement/go-server/src/common/types"
 )
 
 func (m *CardsModule) _addCardController(w http.ResponseWriter, req *http.Request) {
@@ -19,7 +20,7 @@ func (m *CardsModule) _addCardController(w http.ResponseWriter, req *http.Reques
 		return
 	}
 
-	res := CardActionSuccess{
+	res := types_module.MessageToClient{
 		Message: "Card successfully saved.",
 	}
 
@@ -39,7 +40,7 @@ func (m *CardsModule) _updateCardController(w http.ResponseWriter, req *http.Req
 		return
 	}
 
-	res := CardActionSuccess{
+	res := types_module.MessageToClient{
 		Message: "Card successfully updated.",
 	}
 
@@ -59,7 +60,7 @@ func (m *CardsModule) _deleteCardController(w http.ResponseWriter, req *http.Req
 		return
 	}
 
-	res := CardActionSuccess{
+	res := types_module.MessageToClient{
 		Message: "Card successfully deleted.",
 	}
 

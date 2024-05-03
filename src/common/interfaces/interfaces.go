@@ -1,4 +1,4 @@
-package interfaces
+package interfaces_module
 
 type ModuleWithRoutes interface {
 	SetRoutes()
@@ -7,5 +7,5 @@ type ModuleWithRoutes interface {
 type Socket interface {
 	Connect()
 	Disconnect()
-	Listen()
+	Broadcast()
 }

@@ -3,6 +3,7 @@ package chats_queries
 import (
 	"database/sql"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -20,7 +21,7 @@ func NewChatsQueries(db *sql.DB) *ChatsQueries {
 	}
 }
 
-func (cq *ChatsQueries) CreateTable() error {
+func (cq *ChatsQueries) CreateTable() errors_module.ErrorWithStatus {
 	_, err := cq.db.Exec(`
 		CREATE TABLE IF NOT EXISTS chats (
 			id varchar(255) NOT NULL PRIMARY KEY, 
@@ -37,9 +38,10 @@ func (cq *ChatsQueries) CreateTable() error {
 	return nil
 }
 
-func (cq *ChatsQueries) CreateChat(members ...string) errors_module.ErrorWithStatus {
+func (cq *ChatsQueries) CreateChat(members ...string) (string, errors_module.ErrorWithStatus) {
 	id := uuid.New().String()
-	membersValue := cq.getMembersArrayToDB(members...)
+	membersJoined := strings.Join(members, ",")
+	membersValue := fmt.Sprintf("ARRAY[%v]", membersJoined)
 	messagesValue := "ARRAY[]"
 	created_at := time.Now()
 	updated_at := created_at
@@ -56,7 +58,37 @@ func (cq *ChatsQueries) CreateChat(members ...string) errors_module.ErrorWithSta
 		created_at,
 		updated_at)
 
-	return postgres_main.HandleExecErrors(r, err)
+	execErr := postgres_main.HandleExecErrors(r, err)
+	if execErr != nil {
+		return "", execErr
+	}
+
+	return id, nil
+}
+
+func (cq *ChatsQueries) GetChatById(chatId string) (ChatFromDB, errors_module.ErrorWithStatus) {
+	query := `
+		SELECT * FROM chats
+		WHERE id = $1;
+	`
+	row := cq.db.QueryRow(query, chatId)
+	var chat ChatFromDB
+	err := row.Scan(&chat.Id, &chat.Messages, &chat.Members, &chat.CreatedAt, &chat.UpdatedAt)
+
+	return postgres_main.HandleQueryRowErrors(chat, err)
+}
+
+func (cq *ChatsQueries) GetChatByMembers(members ...string) (ChatFromDB, errors_module.ErrorWithStatus) {
+	membersJoined := strings.Join(members, ",")
+	query := `
+		SELECT * FROM chats 
+		WHERE members && '{$1}';
+	`
+	row := cq.db.QueryRow(query, membersJoined)
+	var chat ChatFromDB
+	err := row.Scan(&chat.Id, &chat.Messages, &chat.Members, &chat.CreatedAt, &chat.UpdatedAt)
+
+	return postgres_main.HandleQueryRowErrors(chat, err)
 }
 
 func (cq *ChatsQueries) AddMessage(chatId string, from_email string, message string) errors_module.ErrorWithStatus {
@@ -114,29 +146,42 @@ func (cq *ChatsQueries) DeleteMessage(chatId string, messageId string) errors_mo
 	return postgres_main.HandleExecErrors(r, execErr)
 }
 
-func (cq *ChatsQueries) GetAllMessages(chatId string) ([]MessageFromDB, errors_module.ErrorWithStatus) {
+func (cq *ChatsQueries) GetChatMessages(chatId string) ([]MessageFromDB, errors_module.ErrorWithStatus) {
 	query := `
 		SELECT messages FROM chats 
-		WHERE id = $1
+		WHERE id = $1;
 	`
-	rows, queryErr := cq.db.Query(query, chatId)
+	row := cq.db.QueryRow(query, chatId)
+	var messages []MessageFromDB
+	err := row.Scan(&messages)
+
+	return postgres_main.HandleQueryRowErrors(messages, err)
+}
+
+func (cq *ChatsQueries) GetAllChatsOfUser(email string) ([]ChatFromDB, errors_module.ErrorWithStatus) {
+	query := `
+		SELECT * FROM chats
+		WHERE members && '{$1}'
+	`
+	rows, queryErr := cq.db.Query(query, email)
 	if queryErr != nil {
 		return nil, errors_module.DbDefaultError(queryErr.Error())
 	}
 	defer rows.Close()
 
-	var messages []MessageFromDB
+	var chats []ChatFromDB
 	for rows.Next() {
-		var message MessageFromDB
-		if err := rows.Scan(&message); err != nil {
+		var chat ChatFromDB
+		err := rows.Scan(&chat.Id, &chat.Messages, &chat.Members, &chat.CreatedAt, &chat.UpdatedAt)
+		if err != nil {
 			return nil, errors_module.DbDefaultError(err.Error())
 		}
-		messages = append(messages, message)
+		chats = append(chats, chat)
 	}
 
 	if err := rows.Err(); err != nil {
 		return nil, errors_module.DbDefaultError(err.Error())
 	}
 
-	return messages, nil
+	return chats, nil
 }

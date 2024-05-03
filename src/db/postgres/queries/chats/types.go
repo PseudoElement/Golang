@@ -6,3 +6,11 @@ type MessageFromDB struct {
 	Message   string `json:"message"`
 	Date      string `json:"date"`
 }
+
+type ChatFromDB struct {
+	Messages  []MessageFromDB `json:"messages"`
+	Members   []string        `json:"members"`
+	Id        string          `json:"id"`
+	CreatedAt string          `json:"createad_at"`
+	UpdatedAt string          `json:"updated_at"`
+}
