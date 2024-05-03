@@ -13,7 +13,7 @@ func (m *CardsModule) _addCardController(w http.ResponseWriter, req *http.Reques
 		return
 	}
 
-	err = m.cq.AddCard(body.Author, body.Info)
+	err = m.cardsQueries.AddCard(body.Author, body.Info)
 	if err != nil {
 		api_main.FailResponse(w, err.Error(), err.Status())
 		return
@@ -33,7 +33,7 @@ func (m *CardsModule) _updateCardController(w http.ResponseWriter, req *http.Req
 		return
 	}
 
-	err = m.cq.UpdateCard(body.Id, body.Author, body.Info)
+	err = m.cardsQueries.UpdateCard(body.Id, body.Author, body.Info)
 	if err != nil {
 		api_main.FailResponse(w, err.Error(), err.Status())
 		return
@@ -53,7 +53,7 @@ func (m *CardsModule) _deleteCardController(w http.ResponseWriter, req *http.Req
 		return
 	}
 
-	err = m.cq.DeleteCard(body.Id)
+	err = m.cardsQueries.DeleteCard(body.Id)
 	if err != nil {
 		api_main.FailResponse(w, err.Error(), err.Status())
 		return
@@ -73,7 +73,7 @@ func (m *CardsModule) _getCarByIdController(w http.ResponseWriter, req *http.Req
 		return
 	}
 
-	cardDb, err := m.cq.GetCard(params["id"])
+	cardDb, err := m.cardsQueries.GetCard(params["id"])
 	if err != nil {
 		api_main.FailResponse(w, err.Error(), err.Status())
 		return

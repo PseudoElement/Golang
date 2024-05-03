@@ -17,7 +17,7 @@ func (m *CardsModule) getSortedCards(params map[string]string) ([]cards_queries.
 		return nil, err
 	}
 
-	cards, err := m.cq.GetAllSortedCard(
+	cards, err := m.cardsQueries.GetAllSortedCard(
 		params["sortBy"],
 		params["sortDir"],
 		page,

@@ -14,7 +14,7 @@ func (m *AuthModule) handleRegistration(w http.ResponseWriter, user auth_models.
 	encryptedPassword := auth_utils.EncryptPassword(user.Password)
 	fmt.Println("Encrypted - ", encryptedPassword)
 
-	err := m.dbSrv.SaveNewUser(auth_models.UserRegister{
+	err := m.authDb.SaveNewUser(auth_models.UserRegister{
 		Name:     user.Name,
 		Email:    user.Email,
 		Password: encryptedPassword,
@@ -36,7 +36,7 @@ func (m *AuthModule) handleRegistration(w http.ResponseWriter, user auth_models.
 }
 
 func (m *AuthModule) handleLogin(w http.ResponseWriter, body auth_models.UserLogin) (auth_models.UserWithToken, errors_module.ErrorWithStatus) {
-	user, err := m.dbSrv.GetUser(body.Email)
+	user, err := m.authDb.GetUser(body.Email)
 	if err != nil {
 		return auth_models.UserWithToken{}, err
 	}

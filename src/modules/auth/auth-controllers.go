@@ -51,7 +51,7 @@ func (m *AuthModule) _userController(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	user, err := m.dbSrv.GetUser(params["email"])
+	user, err := m.authDb.GetUser(params["email"])
 	if err != nil {
 		api_main.FailResponse(w, err.Error(), err.Status())
 		return

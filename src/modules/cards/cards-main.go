@@ -6,10 +6,10 @@ import (
 )
 
 type CardsModule struct {
-	cq     *cards_queries.CardsQueries
-	router *mux.Router
+	cardsQueries *cards_queries.CardsQueries
+	router       *mux.Router
 }
 
 func NewModule(cardsQueries *cards_queries.CardsQueries, router *mux.Router) *CardsModule {
-	return &CardsModule{cq: cardsQueries, router: router}
+	return &CardsModule{cardsQueries: cardsQueries, router: router}
 }

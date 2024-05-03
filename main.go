@@ -12,10 +12,13 @@ import (
 	"github.com/joho/godotenv"
 	postgres_main "github.com/pseudoelement/go-server/src/db/postgres"
 	cards_queries "github.com/pseudoelement/go-server/src/db/postgres/queries/cards"
+	chats_queries "github.com/pseudoelement/go-server/src/db/postgres/queries/chats"
 	redis_main "github.com/pseudoelement/go-server/src/db/redis"
 	oneinch "github.com/pseudoelement/go-server/src/modules/1inch"
 	"github.com/pseudoelement/go-server/src/modules/auth"
 	"github.com/pseudoelement/go-server/src/modules/cards"
+	"github.com/pseudoelement/go-server/src/modules/chats"
+	"github.com/rs/cors"
 )
 
 func main() {
@@ -41,22 +44,33 @@ func main() {
 
 	//queries
 	cardsQueries := cards_queries.NewCardsQueries(db)
+	chatsQueries := chats_queries.NewChatsQueries(db)
 	//
 
 	//modules
 	cardsModule := cards.NewModule(cardsQueries, r)
-	authModule := auth.NewModule(redisInstance)
+	chatsModule := chats.NewModule(chatsQueries, r)
+	authModule := auth.NewModule(redisInstance, r)
 	//
 
-	initErr := initAllTables([]postgres_main.TableCreator{cardsQueries})
+	initErr := initAllTables([]postgres_main.TableCreator{cardsQueries, chatsQueries})
 	if initErr != nil {
 		panic(initErr)
 	}
 
+	chatsModule.SetRoutes()
 	cardsModule.SetRoutes()
-	authModule.SetRoutes(r)
+	authModule.SetRoutes()
 	oneinch.SetRoutes(r)
 
+	c := cors.New(cors.Options{
+		AllowedOrigins:   []string{"http://localhost:5173", "http://localhost:3000"},
+		AllowCredentials: true,
+		MaxAge:           10,
+		Debug:            true,
+	})
+	handler := c.Handler(router)
+
 	fmt.Println("Listening port 8080...")
-	log.Fatal(http.ListenAndServe(os.Getenv("PORT"), r))
+	log.Fatal(http.ListenAndServe(os.Getenv("PORT"), handler))
 }
