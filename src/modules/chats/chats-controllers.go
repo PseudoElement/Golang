@@ -21,7 +21,27 @@ func (m *ChatsModule) _createChatController(w http.ResponseWriter, req *http.Req
 	}
 
 	msg := types_module.MessageToClient{
-		Message: "Chat created!",
+		Message: "Chat successully created!",
+	}
+
+	api_main.SuccessResponse(w, msg, http.StatusOK)
+}
+
+func (m *ChatsModule) _deleteChatController(w http.ResponseWriter, req *http.Request) {
+	params, err := api_main.MapQueryParams(req, "chatId")
+	if err != nil {
+		api_main.FailResponse(w, err.Error(), err.Status())
+		return
+	}
+
+	err = m.handleChatDeletion(params["chatId"])
+	if err != nil {
+		api_main.FailResponse(w, err.Error(), err.Status())
+		return
+	}
+
+	msg := types_module.MessageToClient{
+		Message: "Chat successfully deleted!",
 	}
 
 	api_main.SuccessResponse(w, msg, http.StatusOK)

@@ -66,6 +66,12 @@ func (cq *ChatsQueries) CreateChat(members ...string) (string, errors_module.Err
 	return id, nil
 }
 
+func (cq *ChatsQueries) DeleteChatById(chatId string) errors_module.ErrorWithStatus {
+	r, err := cq.db.Exec(`DELETE FROM chats WHERE id = $1;`, chatId)
+
+	return postgres_main.HandleExecErrors(r, err)
+}
+
 func (cq *ChatsQueries) GetChatById(chatId string) (ChatFromDB, errors_module.ErrorWithStatus) {
 	query := `
 		SELECT * FROM chats

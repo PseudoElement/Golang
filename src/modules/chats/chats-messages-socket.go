@@ -8,6 +8,7 @@ import (
 	api_main "github.com/pseudoelement/go-server/src/api"
 	interfaces_module "github.com/pseudoelement/go-server/src/common/interfaces"
 	chats_queries "github.com/pseudoelement/go-server/src/db/postgres/queries/chats"
+	errors_module "github.com/pseudoelement/go-server/src/errors"
 )
 
 type ChatSocket struct {
@@ -49,8 +50,13 @@ func (s *ChatSocket) Connect() {
 	s.Broadcast()
 }
 
-func (s *ChatSocket) Disconnect() {
-	s.conn.Close()
+func (s *ChatSocket) Disconnect() errors_module.ErrorWithStatus {
+	err := s.conn.Close()
+	if err != nil {
+		return errors_module.ChatDefaultError(err.Error())
+	}
+
+	return nil
 }
 
 func (s *ChatSocket) Broadcast() {
