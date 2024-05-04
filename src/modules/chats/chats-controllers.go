@@ -7,6 +7,16 @@ import (
 	types_module "github.com/pseudoelement/go-server/src/common/types"
 )
 
+func (m *ChatsModule) _disconnectAllChats(w http.ResponseWriter, req *http.Request) {
+	m.fullDisconnectionChan <- true
+
+	msg := types_module.MessageToClient{
+		Message: "All chats disconnected!",
+	}
+
+	api_main.SuccessResponse(w, msg, http.StatusOK)
+}
+
 func (m *ChatsModule) _createChatController(w http.ResponseWriter, req *http.Request) {
 	params, err := api_main.MapQueryParams(req, "from_email", "to_email")
 	if err != nil {
@@ -14,7 +24,7 @@ func (m *ChatsModule) _createChatController(w http.ResponseWriter, req *http.Req
 		return
 	}
 
-	err = m.handleChatCreation(params["from_email"], params["to_email"])
+	err = m.handleChatCreation(w, req, params["from_email"], params["to_email"])
 	if err != nil {
 		api_main.FailResponse(w, err.Error(), err.Status())
 		return
@@ -47,21 +57,22 @@ func (m *ChatsModule) _deleteChatController(w http.ResponseWriter, req *http.Req
 	api_main.SuccessResponse(w, msg, http.StatusOK)
 }
 
-func (m *ChatsModule) _listenChatController(w http.ResponseWriter, req *http.Request) {
+func (m *ChatsModule) _listenChatsController(w http.ResponseWriter, req *http.Request) {
 	params, err := api_main.MapQueryParams(req, "from_email")
 	if err != nil {
 		api_main.FailResponse(w, err.Error(), err.Status())
 		return
 	}
 
-	err = m.handleChatListening(w, req, params["from_email"])
+	err = m.initChatListening(w, req, params["from_email"])
 	if err != nil {
 		api_main.FailResponse(w, err.Error(), err.Status())
 		return
 	}
+	m.listenAllChatsOfUser()
 
 	msg := types_module.MessageToClient{
-		Message: "Chat is being listening!",
+		Message: "All chats are listening!",
 	}
 
 	api_main.SuccessResponse(w, msg, http.StatusOK)

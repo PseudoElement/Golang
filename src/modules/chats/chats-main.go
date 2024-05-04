@@ -10,17 +10,18 @@ import (
 )
 
 type ChatsModule struct {
-	chatsQueries *chats_queries.ChatsQueries
-	router       *mux.Router
-	chats        []*ChatSocket
-	actionChan   chan ChatAction
+	chatsQueries          *chats_queries.ChatsQueries
+	router                *mux.Router
+	chats                 []ChatSocket
+	actionChan            chan ChatAction
+	fullDisconnectionChan chan bool
 }
 
 func NewModule(chatsQueries *chats_queries.ChatsQueries, router *mux.Router) *ChatsModule {
 	return &ChatsModule{
 		chatsQueries: chatsQueries,
 		router:       router,
-		chats:        []*ChatSocket{},
+		chats:        []ChatSocket{},
 		actionChan:   make(chan ChatAction),
 	}
 }
@@ -28,7 +29,7 @@ func NewModule(chatsQueries *chats_queries.ChatsQueries, router *mux.Router) *Ch
 func (m *ChatsModule) CreateChat(w http.ResponseWriter, req *http.Request, chatId string) {
 	newChat := NewChatSocket(chatSocketInitParams{
 		chatsQueries: m.chatsQueries,
-		w:            w,
+		writer:       w,
 		req:          req,
 		chatId:       chatId,
 	})
@@ -37,10 +38,10 @@ func (m *ChatsModule) CreateChat(w http.ResponseWriter, req *http.Request, chatI
 }
 
 func (m *ChatsModule) DeleteChat(chatId string) errors_module.ErrorWithStatus {
-	found, _ := utils.Find(m.chats, func(_chat *ChatSocket) bool {
+	found, _ := utils.Find(m.chats, func(_chat ChatSocket) bool {
 		return _chat.chatId == chatId
 	})
-	chat, ok := found.(*ChatSocket)
+	chat, ok := found.(ChatSocket)
 	if !ok {
 		return errors_module.ChatNotFound()
 	}
@@ -50,7 +51,7 @@ func (m *ChatsModule) DeleteChat(chatId string) errors_module.ErrorWithStatus {
 		return err
 	}
 
-	m.chats = utils.Filter(m.chats, func(_chat *ChatSocket, i int) bool {
+	m.chats = utils.Filter(m.chats, func(_chat ChatSocket, i int) bool {
 		return _chat.chatId != chatId
 	})
 

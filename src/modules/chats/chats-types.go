@@ -6,7 +6,7 @@ type NewChatData struct {
 }
 
 type ChatAction struct {
-	/* Creation / Deletion */
+	/* create / delete */
 	ActionType string
 	ChatId     string
 }

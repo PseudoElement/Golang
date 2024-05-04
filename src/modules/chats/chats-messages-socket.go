@@ -12,37 +12,39 @@ import (
 )
 
 type ChatSocket struct {
-	conn         *websocket.Conn
-	chatsQueries *chats_queries.ChatsQueries
-	w            http.ResponseWriter
-	req          *http.Request
-	chatId       string
+	conn           *websocket.Conn
+	chatsQueries   *chats_queries.ChatsQueries
+	writer         http.ResponseWriter
+	req            *http.Request
+	chatId         string
+	isBroadcasting bool
 }
 
 type chatSocketInitParams struct {
 	chatsQueries *chats_queries.ChatsQueries
-	w            http.ResponseWriter
+	writer       http.ResponseWriter
 	req          *http.Request
 	chatId       string
 }
 
-func NewChatSocket(p chatSocketInitParams) *ChatSocket {
+func NewChatSocket(p chatSocketInitParams) ChatSocket {
 	upgrader := websocket.Upgrader{
 		ReadBufferSize:  1024,
 		WriteBufferSize: 1024,
 	}
 
-	conn, e := upgrader.Upgrade(p.w, p.req, nil)
+	conn, e := upgrader.Upgrade(p.writer, p.req, nil)
 	if e != nil {
 		panic(e)
 	}
 
-	return &ChatSocket{
-		conn:         conn,
-		chatsQueries: p.chatsQueries,
-		w:            p.w,
-		req:          p.req,
-		chatId:       p.chatId,
+	return ChatSocket{
+		conn:           conn,
+		chatsQueries:   p.chatsQueries,
+		writer:         p.writer,
+		req:            p.req,
+		chatId:         p.chatId,
+		isBroadcasting: false,
 	}
 }
 
@@ -61,6 +63,7 @@ func (s *ChatSocket) Disconnect() errors_module.ErrorWithStatus {
 
 func (s *ChatSocket) Broadcast() {
 	for {
+		s.isBroadcasting = true
 		messageType, msgBytes, err := s.conn.ReadMessage()
 		if err != nil {
 			panic(err)
