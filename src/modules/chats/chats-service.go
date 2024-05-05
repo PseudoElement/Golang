@@ -38,6 +38,7 @@ func (m *ChatsModule) createNewChat(w http.ResponseWriter, req *http.Request, fr
 		ToEmail:   toEmail,
 	}
 
+	newChat.Connect()
 	go newChat.Broadcast(fromEmail)
 
 	return nil
@@ -59,6 +60,8 @@ func (m *ChatsModule) connectToChatById(w http.ResponseWriter, req *http.Request
 		ChatId: chatId,
 		Email:  email,
 	}
+
+	newChat.Connect()
 	go newChat.Broadcast(email)
 
 	return nil
@@ -88,7 +91,7 @@ func (m *ChatsModule) disconnectChatById(email string, chatId string) errors_mod
 	return nil
 }
 
-func (m *ChatsModule) listenToUpdates(w http.ResponseWriter, req *http.Request, email string) {
+func (m *ChatsModule) listenToUpdates(w http.ResponseWriter, req *http.Request, email string) errors_module.ErrorWithStatus {
 	updates := NewChatsUpdatesSocket(chatsUpdatesSocketInitParams{
 		writer:         w,
 		req:            req,
@@ -96,5 +99,13 @@ func (m *ChatsModule) listenToUpdates(w http.ResponseWriter, req *http.Request, 
 		disconnectChan: m.disconnectChan,
 		createChan:     m.createChan,
 	})
+
+	err := updates.Connect()
+	if err != nil {
+		return err
+	}
+
 	go updates.Broadcast(email)
+
+	return nil
 }

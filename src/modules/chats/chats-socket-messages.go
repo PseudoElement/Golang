@@ -28,18 +28,7 @@ type chatSocketInitParams struct {
 }
 
 func NewChatSocket(p chatSocketInitParams) *ChatSocket {
-	upgrader := websocket.Upgrader{
-		ReadBufferSize:  1024,
-		WriteBufferSize: 1024,
-	}
-
-	conn, e := upgrader.Upgrade(p.writer, p.req, nil)
-	if e != nil {
-		panic(e)
-	}
-
 	return &ChatSocket{
-		conn:           conn,
 		chatsQueries:   p.chatsQueries,
 		writer:         p.writer,
 		req:            p.req,
@@ -48,7 +37,20 @@ func NewChatSocket(p chatSocketInitParams) *ChatSocket {
 	}
 }
 
-func (s *ChatSocket) Connect() {
+func (s *ChatSocket) Connect() errors_module.ErrorWithStatus {
+	upgrader := websocket.Upgrader{
+		ReadBufferSize:  1024,
+		WriteBufferSize: 1024,
+	}
+
+	conn, err := upgrader.Upgrade(s.writer, s.req, nil)
+	if err != nil {
+		return errors_module.ChatDefaultError(err.Error())
+	}
+
+	s.conn = conn
+
+	return nil
 }
 
 func (s *ChatSocket) Disconnect() errors_module.ErrorWithStatus {

@@ -75,7 +75,11 @@ func (m *ChatsModule) _listenToUpdatesController(w http.ResponseWriter, req *htt
 		return
 	}
 
-	go m.listenToUpdates(w, req, params["email"])
+	err = m.listenToUpdates(w, req, params["email"])
+	if err != nil {
+		api_main.FailResponse(w, err.Error(), err.Status())
+		return
+	}
 
 	msg := types_module.MessageToClient{
 		Message: "Updates are listening!",

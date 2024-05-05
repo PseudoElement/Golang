@@ -7,7 +7,7 @@ type ModuleWithRoutes interface {
 }
 
 type Socket interface {
-	Connect()
+	Connect() errors_module.ErrorWithStatus
 	Disconnect() errors_module.ErrorWithStatus
 	Broadcast(email string)
 }

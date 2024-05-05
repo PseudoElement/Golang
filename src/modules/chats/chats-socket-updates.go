@@ -13,6 +13,8 @@ import (
 )
 
 type ChatsUpdatesSocket struct {
+	writer         http.ResponseWriter
+	req            *http.Request
 	conn           *websocket.Conn
 	connectChan    chan ConnectAction
 	disconnectChan chan DisconnectAction
@@ -28,18 +30,9 @@ type chatsUpdatesSocketInitParams struct {
 }
 
 func NewChatsUpdatesSocket(p chatsUpdatesSocketInitParams) *ChatsUpdatesSocket {
-	upgrader := websocket.Upgrader{
-		ReadBufferSize:  1024,
-		WriteBufferSize: 1024,
-	}
-
-	conn, e := upgrader.Upgrade(p.writer, p.req, nil)
-	if e != nil {
-		panic(e)
-	}
-
 	return &ChatsUpdatesSocket{
-		conn:           conn,
+		writer:         p.writer,
+		req:            p.req,
 		connectChan:    p.connectChan,
 		disconnectChan: p.disconnectChan,
 		createChan:     p.createChan,
@@ -55,7 +48,21 @@ func (s *ChatsUpdatesSocket) Disconnect() errors_module.ErrorWithStatus {
 	return nil
 }
 
-func (s *ChatsUpdatesSocket) Connect() {}
+func (s *ChatsUpdatesSocket) Connect() errors_module.ErrorWithStatus {
+	upgrader := websocket.Upgrader{
+		ReadBufferSize:  1024,
+		WriteBufferSize: 1024,
+	}
+
+	conn, err := upgrader.Upgrade(s.writer, s.req, nil)
+	if err != nil {
+		return errors_module.ChatDefaultError(err.Error())
+	}
+
+	s.conn = conn
+
+	return nil
+}
 
 func (s *ChatsUpdatesSocket) Broadcast(email string) {
 	for {
