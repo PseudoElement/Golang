@@ -27,7 +27,7 @@ type chatSocketInitParams struct {
 	chatId       string
 }
 
-func NewChatSocket(p chatSocketInitParams) ChatSocket {
+func NewChatSocket(p chatSocketInitParams) *ChatSocket {
 	upgrader := websocket.Upgrader{
 		ReadBufferSize:  1024,
 		WriteBufferSize: 1024,
@@ -38,7 +38,7 @@ func NewChatSocket(p chatSocketInitParams) ChatSocket {
 		panic(e)
 	}
 
-	return ChatSocket{
+	return &ChatSocket{
 		conn:           conn,
 		chatsQueries:   p.chatsQueries,
 		writer:         p.writer,
@@ -49,7 +49,6 @@ func NewChatSocket(p chatSocketInitParams) ChatSocket {
 }
 
 func (s *ChatSocket) Connect() {
-	s.Broadcast()
 }
 
 func (s *ChatSocket) Disconnect() errors_module.ErrorWithStatus {
@@ -61,7 +60,7 @@ func (s *ChatSocket) Disconnect() errors_module.ErrorWithStatus {
 	return nil
 }
 
-func (s *ChatSocket) Broadcast() {
+func (s *ChatSocket) Broadcast(email string) {
 	for {
 		s.isBroadcasting = true
 		messageType, msgBytes, err := s.conn.ReadMessage()

@@ -5,8 +5,17 @@ type NewChatData struct {
 	ToEmail   string `json:"to_email"`
 }
 
-type ChatAction struct {
-	/* create / delete */
-	ActionType string
-	ChatId     string
+type DisconnectAction struct {
+	ChatId string
+	Email  string
+}
+
+type ConnectAction struct {
+	ChatId string
+	Email  string
+}
+
+type CreateAction struct {
+	FromEmail string
+	ToEmail   string
 }

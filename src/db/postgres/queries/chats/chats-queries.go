@@ -38,6 +38,28 @@ func (cq *ChatsQueries) CreateTable() errors_module.ErrorWithStatus {
 	return nil
 }
 
+func (cq *ChatsQueries) DeleteMemberFromChat(email string, chatId string) errors_module.ErrorWithStatus {
+	query := `
+		UPDATE chats
+		SET members = array_remove(members, $1)
+		WHERE id = $2;
+	`
+	r, err := cq.db.Exec(query, email, chatId)
+
+	return postgres_main.HandleExecErrors(r, err)
+}
+
+func (cq *ChatsQueries) AddMemberInChat(email string, chatId string) errors_module.ErrorWithStatus {
+	query := `
+		UPDATE chats
+		SET members = array_append(members, $1)
+		WHERE id = $2;
+	`
+	r, err := cq.db.Exec(query, email, chatId)
+
+	return postgres_main.HandleExecErrors(r, err)
+}
+
 func (cq *ChatsQueries) CreateChat(members ...string) (string, errors_module.ErrorWithStatus) {
 	id := uuid.New().String()
 	membersJoined := strings.Join(members, ",")

@@ -9,5 +9,5 @@ type ModuleWithRoutes interface {
 type Socket interface {
 	Connect()
 	Disconnect() errors_module.ErrorWithStatus
-	Broadcast()
+	Broadcast(email string)
 }

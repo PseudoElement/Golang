@@ -19,7 +19,7 @@ func NewCardsQueries(db *sql.DB) *CardsQueries {
 	}
 }
 
-func (cq *CardsQueries) CreateTable() error {
+func (cq *CardsQueries) CreateTable() errors_module.ErrorWithStatus {
 	_, err := cq.db.Exec(`
 		CREATE TABLE IF NOT EXISTS cards (
 			id varchar(255) NOT NULL PRIMARY KEY, 
