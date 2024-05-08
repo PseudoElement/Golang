@@ -1,15 +1,16 @@
 package oneinch
 
 import (
+	"fmt"
 	"net/http"
-
-	"github.com/gorilla/mux"
 )
 
-func SetRoutes(router *mux.Router) {
-	router.HandleFunc("/oneinch/quote", _quoteController).Methods(http.MethodGet)
-	router.HandleFunc("/oneinch/swap", _swapController).Methods(http.MethodGet)
-	router.HandleFunc("/oneinch/allowance", _getAllowanceController).Methods(http.MethodGet)
-	router.HandleFunc("/oneinch/approve", _getApproveConfigController).Methods(http.MethodGet)
-	router.HandleFunc("/hello", _helloController).Methods(http.MethodGet)
+func (m *OneinchModule) SetRoutes() {
+	m.router.HandleFunc("/oneinch/quote", m._quoteController).Methods(http.MethodGet)
+	m.router.HandleFunc("/oneinch/swap", m._swapController).Methods(http.MethodGet)
+	m.router.HandleFunc("/oneinch/allowance", m._getAllowanceController).Methods(http.MethodGet)
+	m.router.HandleFunc("/oneinch/approve", m._getApproveConfigController).Methods(http.MethodGet)
+	m.router.HandleFunc("/hello", m._helloController).Methods(http.MethodGet)
+
+	fmt.Println("OneinchModule started!")
 }

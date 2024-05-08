@@ -10,6 +10,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
+	interfaces_module "github.com/pseudoelement/go-server/src/common/interfaces"
 	postgres_main "github.com/pseudoelement/go-server/src/db/postgres"
 	cards_queries "github.com/pseudoelement/go-server/src/db/postgres/queries/cards"
 	chats_queries "github.com/pseudoelement/go-server/src/db/postgres/queries/chats"
@@ -51,17 +52,22 @@ func main() {
 	cardsModule := cards.NewModule(cardsQueries, r)
 	chatsModule := chats.NewModule(chatsQueries, r)
 	authModule := auth.NewModule(redisInstance, r)
+	oneinchModule := oneinch.NewModule(r)
 	//
 
-	initErr := initAllTables([]postgres_main.TableCreator{cardsQueries, chatsQueries})
+	initErr := initAllTables([]postgres_main.TableCreator{
+		cardsQueries,
+		chatsQueries,
+	})
 	if initErr != nil {
 		panic(initErr)
 	}
-
-	chatsModule.SetRoutes()
-	cardsModule.SetRoutes()
-	authModule.SetRoutes()
-	oneinch.SetRoutes(r)
+	initRoutes([]interfaces_module.ModuleWithRoutes{
+		cardsModule,
+		chatsModule,
+		authModule,
+		oneinchModule,
+	})
 
 	c := cors.New(cors.Options{
 		AllowedOrigins:   []string{"http://localhost:5173", "http://localhost:3000"},

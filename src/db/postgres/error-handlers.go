@@ -3,6 +3,7 @@ package postgres_main
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 
 	errors_module "github.com/pseudoelement/go-server/src/errors"
 )
@@ -22,8 +23,10 @@ func HandleExecErrors(r sql.Result, err error) errors_module.ErrorWithStatus {
 func HandleQueryRowErrors[T any](value T, err error) (T, errors_module.ErrorWithStatus) {
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
+			fmt.Println("ELEMENT NOT FOUND!")
 			return value, errors_module.DbDefaultError("Card not found!")
 		}
+		fmt.Println("ELEMENT ERROR - ", err.Error())
 		return value, errors_module.DbDefaultError(err.Error())
 	}
 

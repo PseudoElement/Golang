@@ -2,10 +2,10 @@ package chats
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/gorilla/websocket"
-	api_main "github.com/pseudoelement/go-server/src/api"
 	interfaces_module "github.com/pseudoelement/go-server/src/common/interfaces"
 	chats_queries "github.com/pseudoelement/go-server/src/db/postgres/queries/chats"
 	errors_module "github.com/pseudoelement/go-server/src/errors"
@@ -73,17 +73,23 @@ func (s *ChatSocket) Broadcast(email string) {
 		var msgStruct chats_queries.MessageFromDB
 		err = json.Unmarshal(msgBytes, &msgStruct)
 		if err != nil {
-			s.conn.WriteMessage(messageType, api_main.FailBytesResponse(err.Error()))
-			continue
+			// s.conn.WriteMessage(messageType, api_main.FailBytesResponse(err.Error()))
+			fmt.Printf("Broadcast Unmarshal error - %v", err.Error())
+			return
 		}
 
 		queryErr := s.chatsQueries.AddMessage(s.chatId, msgStruct.FromEmail, msgStruct.Message)
 		if queryErr != nil {
-			s.conn.WriteMessage(messageType, api_main.FailBytesResponse(queryErr.Error()))
-			continue
+			// s.conn.WriteMessage(messageType, api_main.FailBytesResponse(queryErr.Error()))
+			fmt.Printf("Broadcast QueryErr error - %v", queryErr)
+			return
 		}
 
-		s.conn.WriteMessage(messageType, msgBytes)
+		err = s.conn.WriteMessage(messageType, msgBytes)
+		if err != nil {
+			fmt.Println("Broadcast WriteMessage error - %v", err)
+			return
+		}
 	}
 }
 

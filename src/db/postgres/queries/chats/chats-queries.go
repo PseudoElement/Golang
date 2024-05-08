@@ -2,11 +2,13 @@ package chats_queries
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/lib/pq"
 	postgres_main "github.com/pseudoelement/go-server/src/db/postgres"
 	errors_module "github.com/pseudoelement/go-server/src/errors"
 )
@@ -63,8 +65,8 @@ func (cq *ChatsQueries) AddMemberInChat(email string, chatId string) errors_modu
 func (cq *ChatsQueries) CreateChat(members ...string) (string, errors_module.ErrorWithStatus) {
 	id := uuid.New().String()
 	membersJoined := strings.Join(members, ",")
-	membersValue := fmt.Sprintf("ARRAY[%v]", membersJoined)
-	messagesValue := "ARRAY[]"
+	membersValue := fmt.Sprintf("{%v}", membersJoined)
+	messagesValue := "{}"
 	created_at := time.Now()
 	updated_at := created_at
 
@@ -107,14 +109,34 @@ func (cq *ChatsQueries) GetChatById(chatId string) (ChatFromDB, errors_module.Er
 }
 
 func (cq *ChatsQueries) GetChatByMembers(members ...string) (ChatFromDB, errors_module.ErrorWithStatus) {
-	membersJoined := strings.Join(members, ",")
 	query := `
 		SELECT * FROM chats 
-		WHERE members && '{$1}';
+		WHERE members && $1;
 	`
-	row := cq.db.QueryRow(query, membersJoined)
+	row := cq.db.QueryRow(query, pq.Array(members))
+
 	var chat ChatFromDB
-	err := row.Scan(&chat.Id, &chat.Messages, &chat.Members, &chat.CreatedAt, &chat.UpdatedAt)
+	var messagesBytes []byte
+	var membersBytes []byte
+	err := row.Scan(&chat.Id, &messagesBytes, &membersBytes, &chat.CreatedAt, &chat.UpdatedAt)
+	if err != nil {
+		return postgres_main.HandleQueryRowErrors(chat, err)
+	}
+
+	membersBytes[0] = byte('[')
+	membersBytes[len(membersBytes)-1] = byte(']')
+	messagesBytes[0] = byte('[')
+	messagesBytes[len(messagesBytes)-1] = byte(']')
+
+	fmt.Println("MESSAGES_BYTES - ", string(messagesBytes))
+	fmt.Println("MEMBERS_BYTES - ", string(membersBytes))
+
+	err = json.Unmarshal(messagesBytes, &chat.Messages)
+	if err != nil {
+		return postgres_main.HandleQueryRowErrors(chat, err)
+	}
+
+	err = json.Unmarshal(membersBytes, &chat.Members)
 
 	return postgres_main.HandleQueryRowErrors(chat, err)
 }

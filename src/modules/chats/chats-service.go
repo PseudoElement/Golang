@@ -1,14 +1,16 @@
 package chats
 
 import (
+	"fmt"
 	"net/http"
 
 	errors_module "github.com/pseudoelement/go-server/src/errors"
 )
 
 func (m *ChatsModule) isChatExistsByMembers(fromEmail string, toEmail string) bool {
-	_, err := m.chatsQueries.GetChatByMembers(fromEmail, toEmail)
-	return err == nil
+	chat, err := m.chatsQueries.GetChatByMembers(fromEmail, toEmail)
+	fmt.Println("CHAT_ID - ", chat.Id)
+	return err == nil || chat.Id != ""
 }
 
 func (m *ChatsModule) isChatExistsById(chatId string) bool {
@@ -21,7 +23,7 @@ func (m *ChatsModule) createNewChat(w http.ResponseWriter, req *http.Request, fr
 		return errors_module.ChatAlreadyCreated()
 	}
 
-	chatId, err := m.chatsQueries.CreateChat()
+	chatId, err := m.chatsQueries.CreateChat(fromEmail, toEmail)
 	if err != nil {
 		return err
 	}
@@ -38,7 +40,11 @@ func (m *ChatsModule) createNewChat(w http.ResponseWriter, req *http.Request, fr
 		ToEmail:   toEmail,
 	}
 
-	newChat.Connect()
+	err = newChat.Connect()
+	if err != nil {
+		return err
+	}
+
 	go newChat.Broadcast(fromEmail)
 
 	return nil
@@ -61,7 +67,11 @@ func (m *ChatsModule) connectToChatById(w http.ResponseWriter, req *http.Request
 		Email:  email,
 	}
 
-	newChat.Connect()
+	err := newChat.Connect()
+	if err != nil {
+		return err
+	}
+
 	go newChat.Broadcast(email)
 
 	return nil

@@ -3,6 +3,7 @@ package main
 import (
 	"sync"
 
+	interfaces_module "github.com/pseudoelement/go-server/src/common/interfaces"
 	postgres_main "github.com/pseudoelement/go-server/src/db/postgres"
 )
 
@@ -32,4 +33,10 @@ func initAllTables(queries []postgres_main.TableCreator) error {
 	}
 
 	return nil
+}
+
+func initRoutes(modules []interfaces_module.ModuleWithRoutes) {
+	for _, m := range modules {
+		m.SetRoutes()
+	}
 }
