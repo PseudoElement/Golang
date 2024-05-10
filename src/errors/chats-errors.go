@@ -16,6 +16,13 @@ func ChatNotFound() ErrorWithStatus {
 	}
 }
 
+func ForbiddenConnectionToChat() ErrorWithStatus {
+	return &ApiError{
+		message: "You can't connect to this chat!",
+		status:  http.StatusBadRequest,
+	}
+}
+
 func ChatDefaultError(msg string) ErrorWithStatus {
 	return &ApiError{
 		message: msg,

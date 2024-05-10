@@ -29,40 +29,40 @@ func (m *ChatsModule) _createChatController(w http.ResponseWriter, req *http.Req
 }
 
 func (m *ChatsModule) _deleteChatController(w http.ResponseWriter, req *http.Request) {
-	params, err := api_main.MapQueryParams(req, "chatId", "email")
+	params, err := api_main.MapQueryParams(req, "chat_id", "email")
 	if err != nil {
 		api_main.FailResponse(w, err.Error(), err.Status())
 		return
 	}
 
-	err = m.disconnectChatById(params["email"], params["chatId"])
+	err = m.disconnectChatById(params["email"], params["chat_id"])
 	if err != nil {
 		api_main.FailResponse(w, err.Error(), err.Status())
 		return
 	}
 
 	msg := types_module.MessageToClient{
-		Message: fmt.Sprintf("Chat `%v` is disconnected!", params["chatId"]),
+		Message: fmt.Sprintf("Chat `%v` is disconnected!", params["chat_id"]),
 	}
 
 	api_main.SuccessResponse(w, msg, http.StatusOK)
 }
 
 func (m *ChatsModule) _conectChatController(w http.ResponseWriter, req *http.Request) {
-	params, err := api_main.MapQueryParams(req, "chatId", "email")
+	params, err := api_main.MapQueryParams(req, "chat_id", "email")
 	if err != nil {
 		api_main.FailResponse(w, err.Error(), err.Status())
 		return
 	}
 
-	err = m.connectToChatById(w, req, params["chatId"], params["email"])
+	err = m.connectToChatById(w, req, params["chat_id"], params["email"])
 	if err != nil {
 		api_main.FailResponse(w, err.Error(), err.Status())
 		return
 	}
 
 	msg := types_module.MessageToClient{
-		Message: fmt.Sprintf("Chat `%v` is listening!", params["chatId"]),
+		Message: fmt.Sprintf("Chat `%v` is listening!", params["chat_id"]),
 	}
 
 	api_main.SuccessResponse(w, msg, http.StatusOK)
@@ -86,4 +86,20 @@ func (m *ChatsModule) _listenToUpdatesController(w http.ResponseWriter, req *htt
 	}
 
 	api_main.SuccessResponse(w, msg, http.StatusOK)
+}
+
+func (m *ChatsModule) _getMessagesInChatByIdController(w http.ResponseWriter, req *http.Request) {
+	params, err := api_main.MapQueryParams(req, "chat_id")
+	if err != nil {
+		api_main.FailResponse(w, err.Error(), err.Status())
+		return
+	}
+
+	messages, err := m.chatsQueries.GetChatMessages(params["chat_id"])
+	if err != nil {
+		api_main.FailResponse(w, err.Error(), err.Status())
+		return
+	}
+
+	api_main.SuccessResponse(w, messages, http.StatusOK)
 }

@@ -11,6 +11,6 @@ type ChatFromDB struct {
 	Messages  []MessageFromDB `json:"messages"`
 	Members   []string        `json:"members"`
 	Id        string          `json:"id"`
-	CreatedAt string          `json:"createad_at"`
+	CreatedAt string          `json:"created_at"`
 	UpdatedAt string          `json:"updated_at"`
 }

@@ -102,62 +102,57 @@ func (cq *ChatsQueries) GetChatById(chatId string) (ChatFromDB, errors_module.Er
 		WHERE id = $1;
 	`
 	row := cq.db.QueryRow(query, chatId)
+
 	var chat ChatFromDB
-	err := row.Scan(&chat.Id, &chat.Messages, &chat.Members, &chat.CreatedAt, &chat.UpdatedAt)
+	var messagesStrings []string
+	err := row.Scan(&chat.Id, pq.Array(&messagesStrings), pq.Array(&chat.Members), &chat.CreatedAt, &chat.UpdatedAt)
+	if err != nil {
+		return chat, errors_module.DbDefaultError(err.Error())
+	}
+
+	messages, err := parseStringArrayIntoJsonArray[MessageFromDB](messagesStrings)
+	if err != nil {
+		return chat, errors_module.DbDefaultError(err.Error())
+	}
+	chat.Messages = messages
 
 	return postgres_main.HandleQueryRowErrors(chat, err)
 }
 
 func (cq *ChatsQueries) GetChatByMembers(members ...string) (ChatFromDB, errors_module.ErrorWithStatus) {
+	// @> checks db-array on containing all passed members
+	// && checks db-array on containig at least one passed member
 	query := `
 		SELECT * FROM chats 
-		WHERE members && $1;
+		WHERE members @> $1;
 	`
 	row := cq.db.QueryRow(query, pq.Array(members))
 
 	var chat ChatFromDB
-	var messagesBytes []byte
-	var membersBytes []byte
-	err := row.Scan(&chat.Id, &messagesBytes, &membersBytes, &chat.CreatedAt, &chat.UpdatedAt)
-	if err != nil {
-		return postgres_main.HandleQueryRowErrors(chat, err)
-	}
-
-	membersBytes[0] = byte('[')
-	membersBytes[len(membersBytes)-1] = byte(']')
-	messagesBytes[0] = byte('[')
-	messagesBytes[len(messagesBytes)-1] = byte(']')
-
-	fmt.Println("MESSAGES_BYTES - ", string(messagesBytes))
-	fmt.Println("MEMBERS_BYTES - ", string(membersBytes))
-
-	err = json.Unmarshal(messagesBytes, &chat.Messages)
-	if err != nil {
-		return postgres_main.HandleQueryRowErrors(chat, err)
-	}
-
-	err = json.Unmarshal(membersBytes, &chat.Members)
+	err := row.Scan(&chat.Id, pq.Array(&chat.Messages), pq.Array(&chat.Members), &chat.CreatedAt, &chat.UpdatedAt)
 
 	return postgres_main.HandleQueryRowErrors(chat, err)
 }
 
 func (cq *ChatsQueries) AddMessage(chatId string, from_email string, message string) errors_module.ErrorWithStatus {
 	messageId := uuid.New().String()
-	newValue := fmt.Sprintf(`
-        {
-         "from_email": %v,
-         "message": %v,
-         "date": %v,
-         "id": %v
-        }
-    `, from_email, message, time.Now(), messageId)
+	newMessageBytes, err := json.Marshal(MessageFromDB{
+		Id:        messageId,
+		FromEmail: from_email,
+		Message:   message,
+		Date:      time.Now().String(),
+	})
+	if err != nil {
+		return errors_module.DbDefaultError(err.Error())
+	}
+
 	query := `
         UPDATE chats 
         SET messages = ARRAY_APPEND(messages, $1)
         WHERE id = $2;
     `
 
-	r, err := cq.db.Exec(query, newValue, chatId)
+	r, err := cq.db.Exec(query, newMessageBytes, chatId)
 
 	return postgres_main.HandleExecErrors(r, err)
 }
@@ -174,6 +169,7 @@ func (cq *ChatsQueries) GetMessageById(chatId string, messageId string) (Message
         AND msg->>'id' = $2;
     `
 	row := cq.db.QueryRow(query, chatId, messageId)
+
 	var message MessageFromDB
 	err := row.Scan(&message.FromEmail, &message.Message, &message.Date, &message.Id)
 
@@ -202,18 +198,29 @@ func (cq *ChatsQueries) GetChatMessages(chatId string) ([]MessageFromDB, errors_
 		WHERE id = $1;
 	`
 	row := cq.db.QueryRow(query, chatId)
-	var messages []MessageFromDB
-	err := row.Scan(&messages)
+
+	var messagesStrings []string
+	err := row.Scan(pq.Array(&messagesStrings))
+	if err != nil {
+		return nil, errors_module.DbDefaultError(err.Error())
+	}
+
+	messages, err := parseStringArrayIntoJsonArray[MessageFromDB](messagesStrings)
+	if err != nil {
+		return nil, errors_module.DbDefaultError(err.Error())
+	}
 
 	return postgres_main.HandleQueryRowErrors(messages, err)
 }
 
 func (cq *ChatsQueries) GetAllChatsOfUser(email string) ([]ChatFromDB, errors_module.ErrorWithStatus) {
+	// @> checks db-array on containing all passed members
+	// && checks db-array on containig at least one passed member
 	query := `
 		SELECT * FROM chats
-		WHERE members && '{$1}'
+		WHERE members && $1;
 	`
-	rows, queryErr := cq.db.Query(query, email)
+	rows, queryErr := cq.db.Query(query, pq.Array([]string{email}))
 	if queryErr != nil {
 		return nil, errors_module.DbDefaultError(queryErr.Error())
 	}
@@ -222,7 +229,7 @@ func (cq *ChatsQueries) GetAllChatsOfUser(email string) ([]ChatFromDB, errors_mo
 	var chats []ChatFromDB
 	for rows.Next() {
 		var chat ChatFromDB
-		err := rows.Scan(&chat.Id, &chat.Messages, &chat.Members, &chat.CreatedAt, &chat.UpdatedAt)
+		err := rows.Scan(&chat.Id, pq.Array(&chat.Messages), pq.Array(&chat.Members), &chat.CreatedAt, &chat.UpdatedAt)
 		if err != nil {
 			return nil, errors_module.DbDefaultError(err.Error())
 		}

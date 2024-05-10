@@ -63,34 +63,40 @@ func (s *ChatSocket) Disconnect() errors_module.ErrorWithStatus {
 }
 
 func (s *ChatSocket) Broadcast(email string) {
-	for {
-		s.isBroadcasting = true
-		messageType, msgBytes, err := s.conn.ReadMessage()
-		if err != nil {
-			panic(err)
-		}
+	go func() {
+		for {
+			s.isBroadcasting = true
+			messageType, msgBytes, err := s.conn.ReadMessage()
+			if err != nil {
+				if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseGoingAway) {
+					break
+				}
+				fmt.Printf("Broadcast ReadMessage error: %v\n", err)
+				return
+			}
 
-		var msgStruct chats_queries.MessageFromDB
-		err = json.Unmarshal(msgBytes, &msgStruct)
-		if err != nil {
-			// s.conn.WriteMessage(messageType, api_main.FailBytesResponse(err.Error()))
-			fmt.Printf("Broadcast Unmarshal error - %v", err.Error())
-			return
-		}
+			var msgStruct chats_queries.MessageFromDB
+			err = json.Unmarshal(msgBytes, &msgStruct)
+			if err != nil {
+				// s.conn.WriteMessage(messageType, api_main.FailBytesResponse(err.Error()))
+				fmt.Printf("Broadcast Unmarshal error - %v", err.Error())
+				return
+			}
 
-		queryErr := s.chatsQueries.AddMessage(s.chatId, msgStruct.FromEmail, msgStruct.Message)
-		if queryErr != nil {
-			// s.conn.WriteMessage(messageType, api_main.FailBytesResponse(queryErr.Error()))
-			fmt.Printf("Broadcast QueryErr error - %v", queryErr)
-			return
-		}
+			queryErr := s.chatsQueries.AddMessage(s.chatId, msgStruct.FromEmail, msgStruct.Message)
+			if queryErr != nil {
+				// s.conn.WriteMessage(messageType, api_main.FailBytesResponse(queryErr.Error()))
+				fmt.Printf("Broadcast QueryErr error - %v", queryErr)
+				return
+			}
 
-		err = s.conn.WriteMessage(messageType, msgBytes)
-		if err != nil {
-			fmt.Println("Broadcast WriteMessage error - %v", err)
-			return
+			err = s.conn.WriteMessage(messageType, msgBytes)
+			if err != nil {
+				fmt.Println("Broadcast WriteMessage error - %v", err)
+				return
+			}
 		}
-	}
+	}()
 }
 
 var _ interfaces_module.Socket = (*ChatSocket)(nil)

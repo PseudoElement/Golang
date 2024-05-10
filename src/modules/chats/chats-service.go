@@ -1,20 +1,25 @@
 package chats
 
 import (
-	"fmt"
 	"net/http"
 
 	errors_module "github.com/pseudoelement/go-server/src/errors"
+	"github.com/pseudoelement/go-server/src/utils"
 )
 
 func (m *ChatsModule) isChatExistsByMembers(fromEmail string, toEmail string) bool {
-	chat, err := m.chatsQueries.GetChatByMembers(fromEmail, toEmail)
-	fmt.Println("CHAT_ID - ", chat.Id)
-	return err == nil || chat.Id != ""
+	_, err := m.chatsQueries.GetChatByMembers(fromEmail, toEmail)
+	return err == nil
 }
 
-func (m *ChatsModule) isChatExistsById(chatId string) bool {
-	_, err := m.chatsQueries.GetChatById(chatId)
+func (m *ChatsModule) isAvailableConnection(chatId string, email string) bool {
+	chat, err := m.chatsQueries.GetChatById(chatId)
+	if err != nil {
+		return false
+	}
+	if !utils.Contains(chat.Members, email) {
+		return false
+	}
 	return err == nil
 }
 
@@ -51,8 +56,8 @@ func (m *ChatsModule) createNewChat(w http.ResponseWriter, req *http.Request, fr
 }
 
 func (m *ChatsModule) connectToChatById(w http.ResponseWriter, req *http.Request, chatId string, email string) errors_module.ErrorWithStatus {
-	if !m.isChatExistsById(chatId) {
-		return errors_module.ChatNotFound()
+	if !m.isAvailableConnection(chatId, email) {
+		return errors_module.ForbiddenConnectionToChat()
 	}
 
 	newChat := NewChatSocket(chatSocketInitParams{
