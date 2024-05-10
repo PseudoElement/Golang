@@ -63,6 +63,7 @@ func (s *ChatSocket) Disconnect() errors_module.ErrorWithStatus {
 }
 
 func (s *ChatSocket) Broadcast(email string) {
+	defer s.conn.Close()
 	go func() {
 		for {
 			s.isBroadcasting = true

@@ -3,6 +3,7 @@ package chats
 import (
 	"net/http"
 
+	"github.com/gorilla/websocket"
 	errors_module "github.com/pseudoelement/go-server/src/errors"
 	"github.com/pseudoelement/go-server/src/utils"
 )
@@ -123,4 +124,10 @@ func (m *ChatsModule) listenToUpdates(w http.ResponseWriter, req *http.Request, 
 	go updates.Broadcast(email)
 
 	return nil
+}
+
+func (m *ChatsModule) disconnectClient(chatKey string, conn *websocket.Conn) {
+	m.clients[chatKey] = utils.Filter(m.clients[chatKey], func(connection *websocket.Conn, i int) bool {
+		return connection != conn
+	})
 }

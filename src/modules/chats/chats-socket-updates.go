@@ -68,6 +68,7 @@ func (s *ChatsUpdatesSocket) Broadcast(email string) {
 	for {
 		select {
 		case connect := <-s.connectChan:
+			fmt.Println("USER IS CONNECTED - ", connect.Email)
 			msg := types_module.MessageToClient{
 				Message: fmt.Sprintf("User %v is connected!", connect.Email),
 			}

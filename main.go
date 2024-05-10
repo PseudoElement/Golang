@@ -70,10 +70,13 @@ func main() {
 	})
 
 	c := cors.New(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:5173", "http://localhost:3000"},
+		AllowedOrigins: []string{"*", "https://websocketking.com"},
+		AllowOriginFunc: func(origin string) bool {
+			return true
+		},
 		AllowCredentials: true,
 		MaxAge:           10,
-		Debug:            true,
+		Debug:            false,
 	})
 	handler := c.Handler(router)
 
