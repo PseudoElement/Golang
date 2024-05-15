@@ -26,3 +26,7 @@ type CreateAction struct {
 	FromEmail string
 	ToEmail   string
 }
+
+type ChatCreatedMessage struct {
+	ChatId string `json:"chatId"`
+}

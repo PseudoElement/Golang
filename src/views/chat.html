@@ -7,12 +7,6 @@
         <input id="input-message" type="text" size="40" />
     </div>
 
-    <div class="field">
-        <label for="input-email">Email</label>
-        <input id="input-email" type="text" size="40" />
-    </div>
-
-
     <button onclick="send()">Send</button>
     <button onclick="connect()">Connect</button>
     <button onclick="disconnect()">Disconnect</button>
@@ -43,53 +37,53 @@
   </style>
   <script>
     const inputMsg = document.getElementById("input-message");
-    const inputEmail = document.getElementById("input-email");
     const output = document.getElementById("output");
-    // let socket;
+    const EMAIL = `User_${crypto.randomUUID().slice(0, 10)}`
+    let socket;
 
-    let socket = new WebSocket("ws://localhost:8080/api/v1/chats/connect-to-chat-2");
+    // let socket = new WebSocket("ws://localhost:8080/api/v1/chats/connect-to-chat-2");
 
-    socket.onopen = function (e) {
-        console.log('onOpen', e)
-        output.innerHTML += "Status: Connected\n";
-    };
+    // socket.onopen = function (e) {
+    //     console.log('onOpen', e)
+    //     output.innerHTML += "Status: Connected\n";
+    // };
 
-    socket.onerror = function(e) {
-        console.log('Socket error!', e)
-        socket.close()
-    }
-
-    socket.onclose = function(e) {
-        console.log('Socket closed!', e)
-        output.innerHTML += "Status: Disconnected!\n";
-    }
-
-    socket.onmessage = function (e) {
-        output.innerHTML += "\nServer: " + e.data + "\n";
-    };
-
-    // function connect() {
-    //     socket = new WebSocket("ws://localhost:8080/api/v1/chats/connect-to-chat-2");
-
-    //     socket.onopen = function (e) {
-    //         console.log('onOpen', e)
-    //         output.innerHTML += "Status: Connected\n";
-    //     };
-
-    //     socket.onerror = function(e) {
-    //         console.log('Socket error!', e)
-    //         socket.close()
-    //     }
-
-    //     socket.onclose = function(e) {
-    //         console.log('Socket closed!', e)
-    //         output.innerHTML += "Status: Disconnected!\n";
-    //     }
-
-    //     socket.onmessage = function (e) {
-    //         output.innerHTML += "\nServer: " + e.data + "\n";
-    //     };
+    // socket.onerror = function(e) {
+    //     console.log('Socket error!', e)
+    //     socket.close()
     // }
+
+    // socket.onclose = function(e) {
+    //     console.log('Socket closed!', e)
+    //     output.innerHTML += "Status: Disconnected!\n";
+    // }
+
+    // socket.onmessage = function (e) {
+    //     output.innerHTML += "\nServer: " + e.data + "\n";
+    // };
+
+    function connect() {
+        socket = new WebSocket(`ws://localhost:8080/api/v1/chats/connect-to-chat-2?email=${EMAIL}`);
+
+        socket.onopen = function (e) {
+            console.log('onOpen', e)
+            output.innerHTML += "Status: Connected\n";
+        };
+
+        socket.onerror = function(e) {
+            console.log('Socket error!', e)
+            socket.close()
+        }
+
+        socket.onclose = function(e) {
+            console.log('Socket closed!', e)
+            output.innerHTML += "Status: Disconnected!\n";
+        }
+
+        socket.onmessage = function (e) {
+            output.innerHTML += "\nServer: " + e.data + "\n";
+        };
+    }
 
     function disconnect(){
         socket.close()
@@ -97,10 +91,9 @@
 
     function send() {
       socket.send(JSON.stringify(
-        { email: inputEmail.value, message: inputMsg.value }
+        { email: EMAIL, message: inputMsg.value }
       ));
       inputMsg.value = "";
-      inputEmail.value = ""
     }
   </script>
 </html>

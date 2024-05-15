@@ -18,14 +18,14 @@ func (m *ChatsModule) _createChatController(w http.ResponseWriter, req *http.Req
 		return
 	}
 
-	err = m.createNewChat(w, req, params["from_email"], params["to_email"])
+	chatId, err := m.createNewChat(w, req, params["from_email"], params["to_email"])
 	if err != nil {
 		api_main.FailResponse(w, err.Error(), err.Status())
 		return
 	}
 
-	msg := types_module.MessageToClient{
-		Message: fmt.Sprintf("Chat is created! Members: %v, %v.", params["from_email"], params["to_email"]),
+	msg := ChatCreatedMessage{
+		ChatId: chatId,
 	}
 
 	api_main.SuccessResponse(w, msg, http.StatusOK)
@@ -38,12 +38,6 @@ func (m *ChatsModule) _deleteChatController(w http.ResponseWriter, req *http.Req
 		return
 	}
 
-	err = m.disconnectChatById(params["email"], params["chat_id"])
-	if err != nil {
-		api_main.FailResponse(w, err.Error(), err.Status())
-		return
-	}
-
 	msg := types_module.MessageToClient{
 		Message: fmt.Sprintf("Chat `%v` is disconnected!", params["chat_id"]),
 	}
@@ -51,21 +45,21 @@ func (m *ChatsModule) _deleteChatController(w http.ResponseWriter, req *http.Req
 	api_main.SuccessResponse(w, msg, http.StatusOK)
 }
 
-func (m *ChatsModule) _conectChatController(w http.ResponseWriter, req *http.Request) {
-	params, err := api_main.MapQueryParams(req, "chat_id", "email")
+func (m *ChatsModule) _conectToChatController(w http.ResponseWriter, req *http.Request) {
+	params, err := api_main.MapQueryParams(req, "chatId", "email")
 	if err != nil {
 		api_main.FailResponse(w, err.Error(), err.Status())
 		return
 	}
 
-	err = m.connectToChatById(w, req, params["chat_id"], params["email"])
+	err = m.connectToChatById(w, req, params["chatId"], params["email"])
 	if err != nil {
 		api_main.FailResponse(w, err.Error(), err.Status())
 		return
 	}
 
 	msg := types_module.MessageToClient{
-		Message: fmt.Sprintf("Chat `%v` is listening!", params["chat_id"]),
+		Message: fmt.Sprintf("Chat `%v` is listening!", params["chatId"]),
 	}
 
 	api_main.SuccessResponse(w, msg, http.StatusOK)
@@ -126,24 +120,30 @@ func (m *ChatsModule) _htmlTemplateController(w http.ResponseWriter, req *http.R
 }
 
 func (m *ChatsModule) _connectToChat2Controller(w http.ResponseWriter, req *http.Request) {
+	params, err := api_main.MapQueryParams(req, "email")
+	if err != nil {
+		api_main.FailResponse(w, err.Error(), err.Status())
+		return
+	}
+
 	var upgrader = websocket.Upgrader{}
 	upgrader.CheckOrigin = func(req *http.Request) bool {
 		origin := req.Header.Get("Origin")
 		return utils.Contains(ALLOWED_ORIGINS, origin)
 	}
-	conn, err := upgrader.Upgrade(w, req, nil)
-	if err != nil {
+	conn, upgrErr := upgrader.Upgrade(w, req, nil)
+	if upgrErr != nil {
 		panic(err)
 	}
 
 	_, ok := m.clients["test-chat"]
 	if !ok {
-		m.clients["test-chat"] = []*websocket.Conn{}
+		m.clients["test-chat"] = make(map[string]*websocket.Conn)
 	}
-	m.clients["test-chat"] = append(m.clients["test-chat"], conn)
 
-	defer conn.Close()
-	defer m.disconnectClient("test-chat", conn)
+	m.clients["test-chat"][params["email"]] = conn
+
+	defer m.disconnectClient("test-chat", params["email"])
 
 	for {
 		msgType, message, err := conn.ReadMessage()

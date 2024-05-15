@@ -3,7 +3,6 @@ package chats
 import (
 	"net/http"
 
-	"github.com/gorilla/websocket"
 	errors_module "github.com/pseudoelement/go-server/src/errors"
 	"github.com/pseudoelement/go-server/src/utils"
 )
@@ -24,42 +23,23 @@ func (m *ChatsModule) isAvailableConnection(chatId string, email string) bool {
 	return err == nil
 }
 
-func (m *ChatsModule) createNewChat(w http.ResponseWriter, req *http.Request, fromEmail string, toEmail string) errors_module.ErrorWithStatus {
+func (m *ChatsModule) createNewChat(w http.ResponseWriter, req *http.Request, fromEmail string, toEmail string) (string, errors_module.ErrorWithStatus) {
 	if m.isChatExistsByMembers(fromEmail, toEmail) {
-		return errors_module.ChatAlreadyCreated()
+		return "", errors_module.ChatAlreadyCreated()
 	}
 
 	chatId, err := m.chatsQueries.CreateChat(fromEmail, toEmail)
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	newChat := NewChatSocket(chatSocketInitParams{
-		chatsQueries: m.chatsQueries,
-		writer:       w,
-		req:          req,
-		chatId:       chatId,
-	})
-	m.chats[chatId] = newChat
-	m.createChan <- CreateAction{
-		FromEmail: fromEmail,
-		ToEmail:   toEmail,
-	}
-
-	err = newChat.Connect()
-	if err != nil {
-		return err
-	}
-
-	go newChat.Broadcast(fromEmail)
-
-	return nil
+	return chatId, nil
 }
 
 func (m *ChatsModule) connectToChatById(w http.ResponseWriter, req *http.Request, chatId string, email string) errors_module.ErrorWithStatus {
-	if !m.isAvailableConnection(chatId, email) {
-		return errors_module.ForbiddenConnectionToChat()
-	}
+	// if !m.isAvailableConnection(chatId, email) {
+	// 	return errors_module.ForbiddenConnectionToChat()
+	// }
 
 	newChat := NewChatSocket(chatSocketInitParams{
 		chatsQueries: m.chatsQueries,
@@ -126,8 +106,8 @@ func (m *ChatsModule) listenToUpdates(w http.ResponseWriter, req *http.Request, 
 	return nil
 }
 
-func (m *ChatsModule) disconnectClient(chatKey string, conn *websocket.Conn) {
-	m.clients[chatKey] = utils.Filter(m.clients[chatKey], func(connection *websocket.Conn, i int) bool {
-		return connection != conn
-	})
+func (m *ChatsModule) disconnectClient(chatId string, email string) {
+	conn := m.clients[chatId][email]
+	conn.Close()
+	delete(m.clients[chatId], email)
 }

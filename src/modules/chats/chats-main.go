@@ -14,7 +14,7 @@ type ChatsModule struct {
 	connectChan           chan ConnectAction
 	disconnectChan        chan DisconnectAction
 	createChan            chan CreateAction
-	clients               map[string][]*websocket.Conn
+	clients               map[string]map[string]*websocket.Conn
 }
 
 func NewModule(chatsQueries *chats_queries.ChatsQueries, router *mux.Router) *ChatsModule {
@@ -22,7 +22,7 @@ func NewModule(chatsQueries *chats_queries.ChatsQueries, router *mux.Router) *Ch
 		chatsQueries:   chatsQueries,
 		router:         router,
 		chats:          map[string]*ChatSocket{},
-		clients:        make(map[string][]*websocket.Conn),
+		clients:        make(map[string]map[string]*websocket.Conn),
 		connectChan:    make(chan ConnectAction),
 		disconnectChan: make(chan DisconnectAction),
 		createChan:     make(chan CreateAction),
