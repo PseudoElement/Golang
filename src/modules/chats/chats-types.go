@@ -1,9 +1,5 @@
 package chats
 
-type Chat struct {
-	isBroadcasting bool
-	clients        map[string]*ChatClient
-}
 type NewChatData struct {
 	FromEmail string `json:"from_email"`
 	ToEmail   string `json:"to_email"`
