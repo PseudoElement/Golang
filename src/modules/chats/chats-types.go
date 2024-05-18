@@ -17,6 +17,7 @@ type ChatCreatedMessage struct {
 type MessageFromClient struct {
 	Message string `json:"message"`
 	Email   string `json:"email"`
+	Type    string `json:"type"`
 }
 
 type MessageActionToClient struct {

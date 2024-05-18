@@ -37,9 +37,9 @@ func (m *ChatsModule) createNewChat(w http.ResponseWriter, req *http.Request, fr
 }
 
 func (m *ChatsModule) connectNewClientToChat(w http.ResponseWriter, req *http.Request, chatId string, email string) errors_module.ErrorWithStatus {
-	// if !m.isAvailableChat(chatId, email) {
-	// 	return errors_module.ForbiddenConnectionToChat()
-	// }
+	if !m.isAvailableChat(chatId, email) {
+		return errors_module.ForbiddenConnectionToChat()
+	}
 
 	_, ok := m.chats[chatId]
 	if !ok {
