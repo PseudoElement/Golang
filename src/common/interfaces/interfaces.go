@@ -1,6 +1,9 @@
 package interfaces_module
 
-import errors_module "github.com/pseudoelement/go-server/src/errors"
+import (
+	"github.com/gorilla/websocket"
+	errors_module "github.com/pseudoelement/go-server/src/errors"
+)
 
 type ModuleWithRoutes interface {
 	SetRoutes()
@@ -8,6 +11,7 @@ type ModuleWithRoutes interface {
 
 type Socket interface {
 	Connect() errors_module.ErrorWithStatus
+	Conn() *websocket.Conn
 	Disconnect() errors_module.ErrorWithStatus
-	Broadcast(email string)
+	Broadcast()
 }

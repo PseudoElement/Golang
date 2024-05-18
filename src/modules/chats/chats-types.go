@@ -1,25 +1,12 @@
 package chats
 
-import "github.com/gorilla/websocket"
-
-type ChatClient struct {
-	email string
-	conn  *websocket.Conn
+type Chat struct {
+	isBroadcasting bool
+	clients        map[string]*ChatClient
 }
-
 type NewChatData struct {
 	FromEmail string `json:"from_email"`
 	ToEmail   string `json:"to_email"`
-}
-
-type DisconnectAction struct {
-	ChatId string
-	Email  string
-}
-
-type ConnectAction struct {
-	ChatId string
-	Email  string
 }
 
 type CreateAction struct {
@@ -29,4 +16,25 @@ type CreateAction struct {
 
 type ChatCreatedMessage struct {
 	ChatId string `json:"chatId"`
+}
+
+type MessageFromClient struct {
+	Message string `json:"message"`
+	Email   string `json:"email"`
+}
+
+type MessageActionToClient struct {
+	Message string `json:"message"`
+	Email   string `json:"email"`
+	Type    string `json:"type"`
+}
+
+type DisconnectActionToClient struct {
+	Message string `json:"message"`
+	Type    string `json:"type"`
+}
+
+type ConnectActionToClient struct {
+	Message string `json:"message"`
+	Type    string `json:"type"`
 }

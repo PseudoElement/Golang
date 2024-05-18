@@ -12,7 +12,7 @@ func (m *ChatsModule) isChatExistsByMembers(fromEmail string, toEmail string) bo
 	return err == nil
 }
 
-func (m *ChatsModule) isAvailableConnection(chatId string, email string) bool {
+func (m *ChatsModule) isAvailableChat(chatId string, email string) bool {
 	chat, err := m.chatsQueries.GetChatById(chatId)
 	if err != nil {
 		return false
@@ -36,40 +36,40 @@ func (m *ChatsModule) createNewChat(w http.ResponseWriter, req *http.Request, fr
 	return chatId, nil
 }
 
-func (m *ChatsModule) connectToChatById(w http.ResponseWriter, req *http.Request, chatId string, email string) errors_module.ErrorWithStatus {
-	// if !m.isAvailableConnection(chatId, email) {
+func (m *ChatsModule) connectNewClientToChat(w http.ResponseWriter, req *http.Request, chatId string, email string) errors_module.ErrorWithStatus {
+	// if !m.isAvailableChat(chatId, email) {
 	// 	return errors_module.ForbiddenConnectionToChat()
 	// }
 
-	newChat := NewChatSocket(chatSocketInitParams{
+	_, ok := m.chats[chatId]
+	if !ok {
+		m.chats[chatId] = make(map[string]*ChatClient)
+	}
+
+	client := NewChatClient(chatClientInitParams{
 		chatsQueries: m.chatsQueries,
 		writer:       w,
 		req:          req,
 		chatId:       chatId,
+		email:        email,
+		chats:        m.chats,
 	})
-	m.chats[chatId] = newChat
-	m.connectChan <- ConnectAction{
-		ChatId: chatId,
-		Email:  email,
-	}
 
-	err := newChat.Connect()
-	if err != nil {
+	if err := client.Connect(); err != nil {
 		return err
 	}
-
-	go newChat.Broadcast(email)
+	go client.Broadcast()
 
 	return nil
 }
 
 func (m *ChatsModule) disconnectChatById(email string, chatId string) errors_module.ErrorWithStatus {
-	chat, ok := m.chats[chatId]
+	client, ok := m.chats[chatId][email]
 	if !ok {
 		return errors_module.ChatNotFound()
 	}
 
-	err := chat.Disconnect()
+	err := client.Disconnect()
 	if err != nil {
 		return err
 	}
@@ -78,22 +78,14 @@ func (m *ChatsModule) disconnectChatById(email string, chatId string) errors_mod
 	if err != nil {
 		return err
 	}
-	delete(m.chats, chatId)
-	m.disconnectChan <- DisconnectAction{
-		ChatId: chatId,
-		Email:  email,
-	}
 
 	return nil
 }
 
 func (m *ChatsModule) listenToUpdates(w http.ResponseWriter, req *http.Request, email string) errors_module.ErrorWithStatus {
 	updates := NewChatsUpdatesSocket(chatsUpdatesSocketInitParams{
-		writer:         w,
-		req:            req,
-		connectChan:    m.connectChan,
-		disconnectChan: m.disconnectChan,
-		createChan:     m.createChan,
+		writer: w,
+		req:    req,
 	})
 
 	err := updates.Connect()
@@ -101,13 +93,7 @@ func (m *ChatsModule) listenToUpdates(w http.ResponseWriter, req *http.Request, 
 		return err
 	}
 
-	go updates.Broadcast(email)
+	go updates.Broadcast()
 
 	return nil
-}
-
-func (m *ChatsModule) disconnectClient(chatId string, email string) {
-	conn := m.clients[chatId][email]
-	conn.Close()
-	delete(m.clients[chatId], email)
 }
