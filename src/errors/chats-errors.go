@@ -1,6 +1,9 @@
 package errors_module
 
-import "net/http"
+import (
+	"fmt"
+	"net/http"
+)
 
 func ChatAlreadyCreated() ErrorWithStatus {
 	return &ApiError{
@@ -26,6 +29,13 @@ func ForbiddenConnectionToChat() ErrorWithStatus {
 func ChatDefaultError(msg string) ErrorWithStatus {
 	return &ApiError{
 		message: msg,
+		status:  http.StatusBadRequest,
+	}
+}
+
+func SocketConnectionError(socketName string) ErrorWithStatus {
+	return &ApiError{
+		message: fmt.Sprintf("Can't init connection to socket `%v`!", socketName),
 		status:  http.StatusBadRequest,
 	}
 }

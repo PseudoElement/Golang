@@ -10,3 +10,8 @@ const (
 	MSG_MESSAGE_TYPE    = "message"
 	MSG_BAN_TYPE        = "ban"
 )
+
+const (
+	UPD_CHAT_CREATED = "create"
+	UPD_CHAT_DELETED = "delete"
+)

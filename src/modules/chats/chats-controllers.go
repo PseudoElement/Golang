@@ -43,24 +43,18 @@ func (m *ChatsModule) _deleteChatController(w http.ResponseWriter, req *http.Req
 	api_main.SuccessResponse(w, msg, http.StatusOK)
 }
 
-func (m *ChatsModule) _listenToUpdatesController(w http.ResponseWriter, req *http.Request) {
+func (m *ChatsModule) _listenToChatCreationOrDeletionController(w http.ResponseWriter, req *http.Request) {
 	params, err := api_main.MapQueryParams(req, "email")
 	if err != nil {
 		api_main.FailResponse(w, err.Error(), err.Status())
 		return
 	}
 
-	err = m.listenToUpdates(w, req, params["email"])
+	err = m.listenToChatCreationDeletion(w, req, params["email"])
 	if err != nil {
 		api_main.FailResponse(w, err.Error(), err.Status())
 		return
 	}
-
-	msg := types_module.MessageToClient{
-		Message: "Updates are listening!",
-	}
-
-	api_main.SuccessResponse(w, msg, http.StatusOK)
 }
 
 func (m *ChatsModule) _getMessagesInChatByIdController(w http.ResponseWriter, req *http.Request) {

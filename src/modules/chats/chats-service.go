@@ -82,14 +82,15 @@ func (m *ChatsModule) disconnectChatById(email string, chatId string) errors_mod
 	return nil
 }
 
-func (m *ChatsModule) listenToUpdates(w http.ResponseWriter, req *http.Request, email string) errors_module.ErrorWithStatus {
+func (m *ChatsModule) listenToChatCreationDeletion(w http.ResponseWriter, req *http.Request, email string) errors_module.ErrorWithStatus {
 	updates := NewChatsUpdatesSocket(chatsUpdatesSocketInitParams{
-		writer: w,
-		req:    req,
+		writer:  w,
+		req:     req,
+		email:   email,
+		clients: m.updatesListeners,
 	})
 
-	err := updates.Connect()
-	if err != nil {
+	if err := updates.Connect(); err != nil {
 		return err
 	}
 

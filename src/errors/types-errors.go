@@ -9,15 +9,15 @@ import (
 
 type JsonError struct {
 	message string
-	status int
+	status  int
 }
 
 func (e *JsonError) Error() string {
 	return e.message
 }
 
-func (e * JsonError) Status() int {
-	return e.status;
+func (e *JsonError) Status() int {
+	return e.status
 }
 
 func UnknownFieldJson(errorMsg string) ErrorWithStatus {
@@ -27,7 +27,7 @@ func UnknownFieldJson(errorMsg string) ErrorWithStatus {
 }
 
 func EmptyFieldInJson(fieldName string) ErrorWithStatus {
-	fieldNameToLower := strings.ToLower(fieldName);
+	fieldNameToLower := strings.ToLower(fieldName)
 	msg := fmt.Sprintf("Request body has empty field - %s!", fieldNameToLower)
 	return &JsonError{message: msg, status: http.StatusBadRequest}
 }
@@ -37,6 +37,10 @@ func BadlyFormedJson() ErrorWithStatus {
 }
 
 func InvalidValueJson(unmarshalTypeError *json.UnmarshalTypeError) ErrorWithStatus {
-	msg := fmt.Sprintf("Request body contains an invalid value for the %q field (at position %d)", unmarshalTypeError.Field, unmarshalTypeError.Offset);
-	return &JsonError{message: msg, status: http.StatusBadRequest};
+	msg := fmt.Sprintf("Request body contains an invalid value for the %q field (at position %d)", unmarshalTypeError.Field, unmarshalTypeError.Offset)
+	return &JsonError{message: msg, status: http.StatusBadRequest}
+}
+
+func UnmarshalError(unmarshalType string) ErrorWithStatus {
+	return &JsonError{message: fmt.Sprintf("Cannot unmarshal type %v", unmarshalType), status: http.StatusBadRequest}
 }

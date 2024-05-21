@@ -35,3 +35,8 @@ type ConnectActionToClient struct {
 	Message string `json:"message"`
 	Type    string `json:"type"`
 }
+
+type NewChatUpdatesAction struct {
+	Members []string `json:"members"`
+	ChatId  string   `json:"chatId"`
+}

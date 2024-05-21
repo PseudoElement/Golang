@@ -56,7 +56,7 @@ func (cl *ChatClient) Connect() errors_module.ErrorWithStatus {
 
 	conn, err := upgrader.Upgrade(cl.writer, cl.req, nil)
 	if err != nil {
-		return errors_module.ChatDefaultError(err.Error())
+		return errors_module.SocketConnectionError("ChatClient")
 	}
 
 	cl.conn = conn
@@ -65,7 +65,7 @@ func (cl *ChatClient) Connect() errors_module.ErrorWithStatus {
 	return nil
 }
 
-func (cl *ChatClient) Clients() map[string]*ChatClient {
+func (cl *ChatClient) Chat() map[string]*ChatClient {
 	return cl.chats[cl.chatId]
 }
 
@@ -78,7 +78,7 @@ func (cl *ChatClient) Conn() *websocket.Conn {
 }
 
 func (cl *ChatClient) isSomeoneAlreadyConnected() bool {
-	return len(cl.Clients()) > 0
+	return len(cl.Chat()) > 0
 }
 
 func (cl *ChatClient) Disconnect() errors_module.ErrorWithStatus {
@@ -86,23 +86,22 @@ func (cl *ChatClient) Disconnect() errors_module.ErrorWithStatus {
 	if err != nil {
 		return errors_module.ChatDefaultError(err.Error())
 	}
-	delete(cl.Clients(), cl.Email())
+	delete(cl.Chat(), cl.Email())
 
 	return nil
 }
 
 func (cl *ChatClient) Broadcast() {
+	defer cl.handleClientDisconnection()
 	for {
 		_, msgBytes, err := cl.Conn().ReadMessage()
 		if err != nil {
 			fmt.Println("Read error: ", err)
-			cl.handleClientDisconnection()
 			return
 		}
 
 		msg, err := cl.parseMessageFromClient(msgBytes)
 		if err != nil {
-			cl.handleClientDisconnection()
 			return
 		}
 
@@ -115,7 +114,6 @@ func (cl *ChatClient) Broadcast() {
 
 		if err != nil {
 			fmt.Println("Write response failed: ", err.Error())
-			cl.handleClientDisconnection()
 			return
 		}
 
@@ -131,7 +129,7 @@ func (cl *ChatClient) handleClientConnection() {
 		Type:    MSG_CONNECT_TYPE,
 	}
 
-	for _, client := range cl.Clients() {
+	for _, client := range cl.Chat() {
 		if client.Email() == cl.Email() {
 			continue
 		}
@@ -150,7 +148,7 @@ func (cl *ChatClient) handleClientDisconnection() {
 		Type:    MSG_DISCONNECT_TYPE,
 	}
 
-	for _, client := range cl.Clients() {
+	for _, client := range cl.Chat() {
 		err := client.Conn().WriteJSON(msg)
 		if err != nil {
 			fmt.Println("Disconnect error: ", err)
@@ -165,7 +163,7 @@ func (cl *ChatClient) handleNewMessage(msg MessageFromClient) error {
 		return queryErr
 	}
 
-	for _, client := range cl.Clients() {
+	for _, client := range cl.Chat() {
 		err := client.Conn().WriteJSON(msg)
 		if err != nil {
 			return err
@@ -176,13 +174,13 @@ func (cl *ChatClient) handleNewMessage(msg MessageFromClient) error {
 }
 
 func (cl *ChatClient) handleUserBlock(msg MessageFromClient) error {
-	blockedUser := cl.Clients()[msg.Message]
+	blockedUser := cl.Chat()[msg.Message]
 	blockedUser.Disconnect()
-	delete(cl.Clients(), blockedUser.Email())
+	delete(cl.Chat(), blockedUser.Email())
 
 	message := fmt.Sprintf("User %v has been blocked", msg.Message)
 
-	for _, client := range cl.Clients() {
+	for _, client := range cl.Chat() {
 		err := client.Conn().WriteJSON(MessageFromClient{
 			Message: message,
 			Email:   msg.Email,
