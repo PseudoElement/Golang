@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strconv"
 
 	api_main "github.com/pseudoelement/go-server/src/api"
 	types_module "github.com/pseudoelement/go-server/src/common/types"
@@ -58,13 +59,19 @@ func (m *ChatsModule) _listenToChatCreationOrDeletionController(w http.ResponseW
 }
 
 func (m *ChatsModule) _getMessagesInChatByIdController(w http.ResponseWriter, req *http.Request) {
-	params, err := api_main.MapQueryParams(req, "chat_id")
-	if err != nil {
-		api_main.FailResponse(w, err.Error(), err.Status())
+	params, err := api_main.MapQueryParams(req, "chat_id", "sort_dir", "limit_per_page", "page")
+	page, convErr := strconv.Atoi(params["page"])
+	limit, convErr := strconv.Atoi(params["limit_per_page"])
+	if err != nil || convErr != nil {
+		api_main.FailResponse(w, "Invalid query params!", http.StatusBadRequest)
 		return
 	}
 
-	messages, err := m.chatsQueries.GetChatMessages(params["chat_id"])
+	messages, err := m.chatsQueries.GetChatMessages(
+		params["chat_id"],
+		params["sort_dir"],
+		page,
+		limit)
 	if err != nil {
 		api_main.FailResponse(w, err.Error(), err.Status())
 		return
@@ -92,13 +99,13 @@ func (m *ChatsModule) _htmlTemplateController(w http.ResponseWriter, req *http.R
 }
 
 func (m *ChatsModule) _conectToChatController(w http.ResponseWriter, req *http.Request) {
-	params, err := api_main.MapQueryParams(req, "chatId", "email")
+	params, err := api_main.MapQueryParams(req, "chat_id", "email")
 	if err != nil {
 		api_main.FailResponse(w, err.Error(), err.Status())
 		return
 	}
 
-	err = m.connectNewClientToChat(w, req, params["chatId"], params["email"])
+	err = m.connectNewClientToChat(w, req, params["chat_id"], params["email"])
 	if err != nil {
 		api_main.FailResponse(w, err.Error(), err.Status())
 		return

@@ -1,4 +1,4 @@
-package utils
+package slice_utils
 
 import (
 	"errors"

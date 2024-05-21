@@ -9,7 +9,7 @@ import (
 
 	errors_module "github.com/pseudoelement/go-server/src/errors"
 	auth_models "github.com/pseudoelement/go-server/src/modules/auth/models"
-	"github.com/pseudoelement/go-server/src/utils"
+	slice_utils "github.com/pseudoelement/go-server/src/utils/slices"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -80,7 +80,7 @@ func (r *RedisDB) GetAllUsers() ([]auth_models.UserToClient, errors_module.Error
 	gotUsers := time.Since(start)
 	fmt.Printf("gotUsers took %s\n", gotUsers)
 
-	notEmptyUsers := utils.Filter(users, func(user auth_models.UserToClient, i int) bool {
+	notEmptyUsers := slice_utils.Filter(users, func(user auth_models.UserToClient, i int) bool {
 		return user.Name != "" && user.Email != ""
 	})
 
@@ -121,7 +121,7 @@ func (r *RedisDB) GetStruct(key string, structToAppendValue interface{}) error {
 func (r *RedisDB) getUpdatedEmailsList(newEmails []string, oldEmails []string) []string {
 	var updatedEmails []string
 	for _, newEmail := range newEmails {
-		if !utils.Contains(oldEmails, newEmail) {
+		if !slice_utils.Contains(oldEmails, newEmail) {
 			updatedEmails = append(updatedEmails, newEmail)
 		}
 	}

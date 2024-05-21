@@ -6,7 +6,7 @@ import (
 
 	cards_queries "github.com/pseudoelement/go-server/src/db/postgres/queries/cards"
 	errors_module "github.com/pseudoelement/go-server/src/errors"
-	"github.com/pseudoelement/go-server/src/utils"
+	slice_utils "github.com/pseudoelement/go-server/src/utils/slices"
 )
 
 func (m *CardsModule) getSortedCards(params map[string]string) ([]cards_queries.CardFromDB, errors_module.ErrorWithStatus) {
@@ -35,10 +35,10 @@ func (m *CardsModule) checkGetSortedCardsQueryValues(params map[string]string) e
 	sortByToLower := strings.ToLower(params["sortBy"])
 	sortDirToLower := strings.ToLower(params["sortDir"])
 
-	if !utils.Contains(sortByValues, sortByToLower) {
+	if !slice_utils.Contains(sortByValues, sortByToLower) {
 		return errors_module.IncorrectQueryParamValue("sortBy")
 	}
-	if !utils.Contains(sortDirValues, sortDirToLower) {
+	if !slice_utils.Contains(sortDirValues, sortDirToLower) {
 		return errors_module.IncorrectQueryParamValue("sortDir")
 	}
 

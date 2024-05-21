@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	errors_module "github.com/pseudoelement/go-server/src/errors"
-	"github.com/pseudoelement/go-server/src/utils"
+	slice_utils "github.com/pseudoelement/go-server/src/utils/slices"
 )
 
 func (m *ChatsModule) isChatExistsByMembers(fromEmail string, toEmail string) bool {
@@ -17,7 +17,7 @@ func (m *ChatsModule) isAvailableChat(chatId string, email string) bool {
 	if err != nil {
 		return false
 	}
-	if !utils.Contains(chat.Members, email) {
+	if !slice_utils.Contains(chat.Members, email) {
 		return false
 	}
 	return err == nil

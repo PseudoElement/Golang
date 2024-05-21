@@ -192,7 +192,7 @@ func (cq *ChatsQueries) DeleteMessage(chatId string, messageId string) errors_mo
 	return postgres_main.HandleExecErrors(r, execErr)
 }
 
-func (cq *ChatsQueries) GetChatMessages(chatId string) ([]MessageFromDB, errors_module.ErrorWithStatus) {
+func (cq *ChatsQueries) GetChatMessages(chatId string, sortDir string, page int, limitPerPage int) ([]MessageFromDB, errors_module.ErrorWithStatus) {
 	query := `
 		SELECT messages FROM chats 
 		WHERE id = $1;
@@ -209,6 +209,8 @@ func (cq *ChatsQueries) GetChatMessages(chatId string) ([]MessageFromDB, errors_
 	if err != nil {
 		return nil, errors_module.DbDefaultError(err.Error())
 	}
+
+	messages, err = sortMessages(messages, sortDir, page, limitPerPage)
 
 	return postgres_main.HandleQueryRowErrors(messages, err)
 }

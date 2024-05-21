@@ -9,7 +9,7 @@ import (
 	interfaces_module "github.com/pseudoelement/go-server/src/common/interfaces"
 	chats_queries "github.com/pseudoelement/go-server/src/db/postgres/queries/chats"
 	errors_module "github.com/pseudoelement/go-server/src/errors"
-	"github.com/pseudoelement/go-server/src/utils"
+	slice_utils "github.com/pseudoelement/go-server/src/utils/slices"
 )
 
 type ChatClient struct {
@@ -51,7 +51,7 @@ func (cl *ChatClient) Connect() errors_module.ErrorWithStatus {
 	}
 	upgrader.CheckOrigin = func(req *http.Request) bool {
 		origin := req.Header.Get("Origin")
-		return utils.Contains(ALLOWED_ORIGINS, origin)
+		return slice_utils.Contains(ALLOWED_ORIGINS, origin)
 	}
 
 	conn, err := upgrader.Upgrade(cl.writer, cl.req, nil)
