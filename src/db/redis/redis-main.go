@@ -45,7 +45,7 @@ func (r *RedisDB) Init() {
 	}, 0)
 
 	_, err = client.Get(r.ctx, "user").Result()
-	if err != nil {
-		panic(err)
-	}
+	// if err != nil {
+	// 	panic(err)
+	// }
 }
